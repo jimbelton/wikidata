@@ -2,11 +2,13 @@
 
 """wd-extract.py - Extract data from a JSON dump of wikidata.org
 
-Usage: wd-extract.py [-f] [-l lc] [-s pat] <wd-dump-json>
+Usage: wd-extract.py [-fjp] [-l lc] [-s pat] <wd-dump-json>
 
 Options:
     -f --failonerror    If present, exit if an error occurs
-    -l --language lc    Use lc for all strings, falling back to en if needed, falling back to a random language if needed.
+    -j --json           Dump objects in JSON (otherwise, just print their labels)
+    -l --language lc    Use lc for all strings, falling back to en if needed, falling back to a random language if needed
+    -p --properties     Just dump the properties
     -s --sitelinks pat  Pattern for sitelinks to include or "" to exclude all sitelinks
 """
 
@@ -26,9 +28,11 @@ def depluralize(string):
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 from docopt  import docopt
 from options import error, warn, options
-args = docopt(__doc__, version='1.0')
-lang = args["--language"]
-site = args["--sitelinks"]
+args  = docopt(__doc__, version='1.0')
+dump  = args["--json"]
+lang  = args["--language"]
+props = args["--properties"]
+site  = args["--sitelinks"]
 options["ignore-errors"] = not args["--failonerror"]
 
 if site and site != "":
@@ -84,6 +88,13 @@ while True:
                 if not sitePat.match(link):
                     del obj["sitelinks"][link]
 
-    print json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
+    if props and obj["type"] != "property":
+        continue
 
-
+    if dump:
+        print json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
+    else:
+        try:
+            print obj["label"]
+        except KeyError:
+            error("object %s has no label" % obj["id"], file=args["<wd-dump-json>"], line=lineNum)
