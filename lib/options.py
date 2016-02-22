@@ -45,6 +45,9 @@ def error(message, file = None, line = None):
     if not getOption('ignore-errors', False):
         sys.exit(1)
 
+def fatal(message, file = None, line = None):
+    sys.exit(formatMessage("fatal", message, file, line))
+
 def takeAction(action):
     if getOption('noaction', False):
         print "Would " + action
