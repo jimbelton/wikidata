@@ -2,14 +2,14 @@
 
 """wd-extract.py - Extract data from a JSON dump of wikidata.org
 
-Usage: wd-extract.py [-cfnpr] [-l lc] [-s pat] [-t type] [-w] <wd-dump-json>
+Usage: wd-extract.py [-cfnr] [-l lc] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
 
 Options:
     -c --claims         Don't simplify claims
     -f --failonerror    If present, exit if an error occurs
-    -l --language lc    Use lc for all strings, falling back to en if needed, falling back to a random language if needed
+    -l --language lc    Use language lc for all strings, falling back to en if needed, falling back to a random language if needed
     -n --names          Print lables only instead of dumping objects in JSON
-    -p --properties     Replace property ids with labels
+    -p --properties lc  Replace property ids with labels in language lc, falling back to english or a random language if needed
     -s --sitelinks pat  Pattern for sitelinks to include or "" to exclude all sitelinks
     -t --type type      Type of object to extract (property|item). Default=all
     -r --references     Don't remove references
@@ -20,6 +20,29 @@ import json
 import os
 import re
 import sys
+
+def chooseString(strings, language):
+    if language in strings:
+        value = strings[language]
+
+    elif "en" in strings:
+        value = strings["en"]
+
+    elif len(strings) > 0:
+        value = strings[strings.keys()[0]]
+
+    else:
+        return None
+
+    if isinstance(value, list):
+        newValue = []
+
+        for element in value:
+            newValue.append(element["value"])
+
+        return newValue
+
+    return value["value"]
 
 def depluralize(string):
     if string.endswith("ies"):
@@ -70,7 +93,7 @@ def process(command="extract", output=sys.stdout):
             obj = json.loads(line[:-2])
         except:
             try:
-                obj = json.loads(line[:-2])
+                obj = json.loads(line[:-1])
             except:
                 fatal("Unable to decode JSON '%s'" % line[:-2], file=args["<wd-dump-json>"], line=lineNum)
 
@@ -79,7 +102,8 @@ def process(command="extract", output=sys.stdout):
                 continue
 
             try:
-                output.write(endOfLine + '"' + obj["id"] + '": "' + obj["label"] + '"')
+                #output.write(endOfLine + '"' + obj["id"] + '"')
+                output.write(endOfLine + '"' + obj["id"] + '": ' + json.dumps(chooseString(obj["labels"], properties)))
             except KeyError:
                 error("Object %s has no label" % obj["id"], file=args["<wd-dump-json>"], line=lineNum)
 
@@ -107,26 +131,17 @@ def process(command="extract", output=sys.stdout):
                     warn("object has no %s" % member, file=args["<wd-dump-json>"], line=lineNum)
                     continue
 
-                if lang in obj[member]:
-                    value = obj[member][lang]
-                elif "en" in obj[member]:
-                    value = obj[member][lang]
-                elif len(obj[member]) > 0:
-                    value = obj[member][obj[member].keys()[0]]
-                else:
+                value = chooseString(obj[member], lang)
+                del obj[member]
+
+                if value == None:
                     warn("object member %s contains no string in any language" % member, file=args["<wd-dump-json>"], line=lineNum)
-                    del obj[member]
-                    continue
 
-                if isinstance(value, list):
-                    obj[member] = []
-
-                    for element in value:
-                        obj[member].append(element["value"])
+                elif isinstance(value, list):
+                    obj[member] = value
 
                 else:
-                    del obj[member]
-                    obj[depluralize(member)] = value["value"]
+                    obj[depluralize(member)] = value
 
         if not claims and "claims" in obj:
             for property in obj["claims"]:
@@ -187,6 +202,5 @@ if properties:
         output.close()
 
     properties = json.load(open(mapFileName))
-    sys.exit(json.dumps(properties, sort_keys=True, indent=4, separators=(',', ': ')))
 
 process()
