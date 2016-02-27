@@ -81,21 +81,21 @@ def process(command="extract", output=sys.stdout):
         if not line:
             break
 
-        if len(line) == 2:
-            if line[0] == "[":
-                continue
-            elif line[0] == "]":
-                break
-            else:
-                fatal("Unexpected line '%s'" % line[0], file=args["<wd-dump-json>"], line=lineNum)
-
         try:
             obj = json.loads(line[:-2])
         except:
+            if len(line) == 2:
+                if line[0] == "[":
+                    continue
+                elif line[0] == "]":
+                    break
+                else:
+                    fatal("Unexpected line '%s'" % line[0], file=args["<wd-dump-json>"], line=lineNum)
+
             try:
                 obj = json.loads(line[:-1])
             except:
-                fatal("Unable to decode JSON '%s'" % line[:-2], file=args["<wd-dump-json>"], line=lineNum)
+                fatal("Unable to decode JSON in line '%s'" % line[:-1], file=args["<wd-dump-json>"], line=lineNum)
 
         if command == "map":
             if obj["type"] != "property":
