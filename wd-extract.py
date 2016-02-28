@@ -8,7 +8,7 @@ Options:
     -c --claims         Don't simplify claims
     -f --failonerror    If present, exit if an error occurs
     -l --language lc    Use language lc for all strings, falling back to en if needed, falling back to a random language if needed
-    -n --names          Print lables only instead of dumping objects in JSON
+    -n --names          Print labels only instead of dumping objects in JSON
     -p --properties lc  Replace property ids with labels in language lc, falling back to english or a random language if needed
     -s --sitelinks pat  Pattern for sitelinks to include or "" to exclude all sitelinks
     -t --type type      Type of object to extract (property|item). Default=all
@@ -102,7 +102,6 @@ def process(command="extract", output=sys.stdout):
                 continue
 
             try:
-                #output.write(endOfLine + '"' + obj["id"] + '"')
                 output.write(endOfLine + '"' + obj["id"] + '": ' + json.dumps(chooseString(obj["labels"], properties)))
             except KeyError:
                 error("Object %s has no label" % obj["id"], file=args["<wd-dump-json>"], line=lineNum)
@@ -145,7 +144,15 @@ def process(command="extract", output=sys.stdout):
 
         if not claims and "claims" in obj:
             for property in obj["claims"]:
-                obj[property] = []
+                label = property
+
+                if properties:
+                    try:
+                        label = properties[property]
+                    except KeyError:
+                        error("Property '%s' not in map" % property)
+
+                obj[label] = []
 
                 for claim in obj["claims"][property]:
                     statement = {}
@@ -176,7 +183,9 @@ def process(command="extract", output=sys.stdout):
 
                         fatal("claim:" + json.dumps(claim, sort_keys=True, indent=4, separators=(',', ': ')))
 
-                    obj[property].append(statement)
+                    obj[label].append(statement)
+
+            del obj["claims"]
 
         if site != None and "sitelinks" in obj:
             if site == "":
