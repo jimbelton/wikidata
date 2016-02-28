@@ -2,17 +2,18 @@
 
 """wd-extract.py - Extract data from a JSON dump of wikidata.org
 
-Usage: wd-extract.py [-cfnr] [-l lc] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
+Usage: wd-extract.py [-cCfnR] [-l lc] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
 
 Options:
-    -c --claims         Don't simplify claims
+    -C --claims         Don't simplify claims
+    -c --classes        Extract the class hierarchy (TBD)
     -f --failonerror    If present, exit if an error occurs
     -l --language lc    Use language lc for all strings, falling back to en if needed, falling back to a random language if needed
     -n --names          Print labels only instead of dumping objects in JSON
     -p --properties lc  Replace property ids with labels in language lc, falling back to english or a random language if needed
     -s --sitelinks pat  Pattern for sitelinks to include or "" to exclude all sitelinks
     -t --type type      Type of object to extract (property|item). Default=all
-    -r --references     Don't remove references
+    -R --references     Don't remove references
     -w --warning        Print warnings
 """
 
@@ -21,6 +22,8 @@ import os
 import re
 import sys
 
+# Pick the the string for the requested language from a multilingual string map, falling back to English, or to the first string.
+#
 def chooseString(strings, language):
     if language in strings:
         value = strings[language]
@@ -44,6 +47,8 @@ def chooseString(strings, language):
 
     return value["value"]
 
+# Simple depluralize that only handles the cases it needs to
+#
 def depluralize(string):
     if string.endswith("ies"):
         return string[:-3] + "y"
@@ -56,19 +61,26 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 from docopt  import docopt
 from options import error, fatal, warn, options
 args       = docopt(__doc__, version='1.0')
-claims     = args["--claims"]
+keepClaims = args["--claims"]
 lang       = args["--language"]
 names      = args["--names"]
 properties = args["--properties"]
 site       = args["--sitelinks"]
 type       = args["--type"]
-refs       = args["--references"]
+keepRefs   = args["--references"]
 options["ignore-errors"] = not args["--failonerror"]
 options["warning"]       = args["--warning"]
 
 if site and site != "":
     sitePat = re.compile(site + "$")
 
+# If dumping the names of all objects and no language specified, default to English
+#
+if names and lang == None:
+    lang = "en"
+
+# Process the data file, extracting data by default and outputting it to standard output
+#
 def process(command="extract", output=sys.stdout):
     wikidata  = open(args["<wd-dump-json>"])
     lineNum   = 0
@@ -78,9 +90,13 @@ def process(command="extract", output=sys.stdout):
         line    = wikidata.readline()
         lineNum += 1
 
+        # Done?
+        #
         if not line:
             break
 
+        # Parse the next line, skipping the leading and trailing brackets
+        #
         try:
             obj = json.loads(line[:-2])
         except:
@@ -97,9 +113,19 @@ def process(command="extract", output=sys.stdout):
             except:
                 fatal("Unable to decode JSON in line '%s'" % line[:-1], file=args["<wd-dump-json>"], line=lineNum)
 
+        # If generating a map of the properties
+        #
         if command == "map":
             if obj["type"] != "property":
                 continue
+
+            if obj["id"] == "P279":
+                if "en" not in obj["labels"]:
+                    fatal("Property P279 does not have an English label (expected 'subclass of')")
+
+                if obj["labels"]["en"]["value"] != "subclass of":
+                    fatal("Property P279 has English label '%s' (expected 'subclass of')" % obj["labels"]["en"]["value"])
+
 
             try:
                 output.write(endOfLine + '"' + obj["id"] + '": ' + json.dumps(chooseString(obj["labels"], properties)))
@@ -109,21 +135,19 @@ def process(command="extract", output=sys.stdout):
             endOfLine = ",\n    "
             continue
 
+        # If filtering (either just properties or just items), skip if not the one we want.
+        #
         if type and obj["type"] != type:
             continue
 
-        if names:
-            try:
-                print obj["label"]
-            except KeyError:
-                error("object %s has no label" % obj["id"], file=args["<wd-dump-json>"], line=lineNum)
-
-            continue
-
+        # Skip objects that don't have an id (with an error)
+        #
         if "id" not in obj:
             error("object has no id", file=args["<wd-dump-json>"], line=lineNum)
             continue
 
+        # Collapse multilingual string tables if desired.
+        #
         if lang:
             for member in ("labels", "descriptions", "aliases"):
                 if member not in obj:
@@ -142,10 +166,26 @@ def process(command="extract", output=sys.stdout):
                 else:
                     obj[depluralize(member)] = value
 
-        if not claims and "claims" in obj:
-            for property in obj["claims"]:
-                label = property
+        # If listing the labels, do it
+        #
+        if names:
+            try:
+                print obj["label"]
+            except KeyError:
+                error("Object %s has no label" % obj["id"], file=args["<wd-dump-json>"], line=lineNum)
 
+            continue
+
+        # Unless told not to, simplify the "claims" (i.e. the properties of the object)
+        #
+        if not keepClaims and "claims" in obj:
+            # For each property that has claims
+            #
+            for property in obj["claims"]:
+                label = property    # Default property name to the id
+
+                # If substituting labels for property ids, look the label up in the map
+                #
                 if properties:
                     try:
                         label = properties[property]
@@ -154,6 +194,8 @@ def process(command="extract", output=sys.stdout):
 
                 obj[label] = []
 
+                # For each claim of this property
+                #
                 for claim in obj["claims"][property]:
                     statement = {}
 
@@ -187,6 +229,8 @@ def process(command="extract", output=sys.stdout):
 
             del obj["claims"]
 
+        # If a sitelink filter was specified, apply it
+        #
         if site != None and "sitelinks" in obj:
             if site == "":
                 del obj["sitelinks"]
@@ -197,6 +241,12 @@ def process(command="extract", output=sys.stdout):
 
         print json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
 
+#
+# Main entry point
+#
+
+# If the properties are to be substituted, build a map first
+#
 if properties:
     if args["<wd-dump-json>"].endswith(".json"):
         mapFileName = args["<wd-dump-json>"][:-5] + "-properties.json"
@@ -212,4 +262,9 @@ if properties:
 
     properties = json.load(open(mapFileName))
 
+    if "P279" not in properties:
+        fatal("Property P279 (subclass of) not found!")
+
+# Now extract the data (or list the labels)
+#
 process()
