@@ -13,7 +13,7 @@ Usage: `wd-extract.py [-cCfnr] [-l lc] [-p lc] [-s pat] [-t type] [-w]` *wd-dump
 | Option | Long Option | Description |
 | --- | --- | --- |
 | -C | --claims        | Don't simplify claims. By default, the complex structure will be simplified. |
-| -c | --classes       | Create a class map and dump it in JSON format. |
+| -c | --classes       | TBD: Create a class map and dump it in JSON format. |
 | -f | --failonerror  | If present, exit if an error occurs. |
 | -l | --language *lc*   | Use language *lc* for all string members, falling back to **en** if needed, falling back to a random language if needed. The member name will also be depluralized (e.g. "labels" to "label"). If not specified, the multilingual string tables will be left unmodified. |
 | -n | --names         | Print labels only instead of dumping objects in JSON. Uses language, or **en** if none specified. |
