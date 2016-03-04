@@ -8,12 +8,12 @@ These files are maps from property identifiers to (usually) english language lab
 
 Extract data from a JSON dump of wikidata.org. Currently, extracting only English strings (-l en) and stripping all sitelinks reduces the size of the JSON by roughly 10 times.
 
-Usage: `wd-extract.py [-cCfnr] [-l lc] [-p lc] [-s pat] [-t type] [-w]` *wd-dump-json*
+Usage: `wd-extract.py [-c|-C] [-fnr] [-l lc] [-p lc] [-s pat] [-t type] [-w]` *wd-dump-json*
 
 | Option | Long Option | Description |
 | --- | --- | --- |
 | -C | --claims        | Don't simplify claims. By default, the complex structure will be simplified. |
-| -c | --classes       | TBD: Create a class map and dump it in JSON format. |
+| -c | --classes       | Create a class hierarchy and dump it in JSON format. |
 | -f | --failonerror  | If present, exit if an error occurs. |
 | -l | --language *lc*   | Use language *lc* for all string members, falling back to **en** if needed, falling back to a random language if needed. The member name will also be depluralized (e.g. "labels" to "label"). If not specified, the multilingual string tables will be left unmodified. |
 | -n | --names         | Print labels only instead of dumping objects in JSON. Uses language, or **en** if none specified. |
@@ -22,3 +22,15 @@ Usage: `wd-extract.py [-cCfnr] [-l lc] [-p lc] [-s pat] [-t type] [-w]` *wd-dump
 | -t | --type *type*     | Type of object to extract (property\|item). Default=all |
 | -R | --references    | TBD: Don't remove references. References are links to sources of information. |
 | -w | --warning       | Print warnings. |
+
+## wd-diagram.py
+
+Generates a class diagram from extracted classes
+
+Usage: `wd-diagram.py [-dfw]` *wd-classes-json*
+
+| Option | Long Option | Description |
+| --- | --- | --- |
+| -d | --dot         | Output the diagram in dot format (default: ascii) |
+| -f | --failonerror | If present, exit if an error occurs |
+| -w | --warning     | Print warnings |
