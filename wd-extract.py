@@ -2,11 +2,11 @@
 
 """wd-extract.py - Extract data from a JSON dump of wikidata.org
 
-Usage: wd-extract.py [-cCfnR] [-l lc] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
+Usage: wd-extract.py [-c|-C] [-fnR] [-l lc] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
 
 Options:
     -C --claims         Don't simplify claims
-    -c --classes        Extract the class hierarchy (TBD)
+    -c --classes        Extract the class hierarchy (requires simplifying the claims)
     -f --failonerror    If present, exit if an error occurs
     -l --language lc    Use language lc for all strings, falling back to en if needed, falling back to a random language if needed
     -n --names          Print labels only instead of dumping objects in JSON
@@ -61,6 +61,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 from docopt  import docopt
 from options import error, fatal, warn, options
 args       = docopt(__doc__, version='1.0')
+classes    = {} if args["--classes"] else None
 keepClaims = args["--claims"]
 lang       = args["--language"]
 names      = args["--names"]
@@ -126,7 +127,6 @@ def process(command="extract", output=sys.stdout):
                 if obj["labels"]["en"]["value"] != "subclass of":
                     fatal("Property P279 has English label '%s' (expected 'subclass of')" % obj["labels"]["en"]["value"])
 
-
             try:
                 output.write(endOfLine + '"' + obj["id"] + '": ' + json.dumps(chooseString(obj["labels"], properties)))
             except KeyError:
@@ -190,7 +190,7 @@ def process(command="extract", output=sys.stdout):
                     try:
                         label = properties[property]
                     except KeyError:
-                        error("Property '%s' not in map" % property)
+                        warn("Property '%s' not in map" % property, file=args["<wd-dump-json>"], line=lineNum)
 
                 obj[label] = []
 
@@ -226,6 +226,29 @@ def process(command="extract", output=sys.stdout):
                         fatal("claim:" + json.dumps(claim, sort_keys=True, indent=4, separators=(',', ': ')))
 
                     obj[label].append(statement)
+
+                if classes != None and property == "P279":
+                    classes[obj["id"]] = {"subclass of": []}
+
+                    for item in obj[label]:
+                        if  item["type"] != "item":
+                            error("Expected type of class to be 'item', got '%s'" % item["type"], file=args["<wd-dump-json>"],
+                                  line=lineNum)
+
+                        try:
+                            classes[obj["id"]]["subclass of"].append(item["value"])
+                        except KeyError:
+                            warn("Class has no value: " + json.dumps(item), file=args["<wd-dump-json>"], line=lineNum)
+                            classes[obj["id"]]["subclass of"].append(item)
+
+                    try:
+                        if lang:
+                            classes[obj["id"]]["label"]  = obj["label"]
+                        else:
+                            classes[obj["id"]]["labels"] = obj["labels"]
+
+                    except KeyError:
+                        warn("Class %s has no label%s" % (obj["id"], "" if lang else "s"), file=args["<wd-dump-json>"], line=lineNum)
 
             del obj["claims"]
 
@@ -268,3 +291,16 @@ if properties:
 # Now extract the data (or list the labels)
 #
 process()
+
+# If dumping the class hierarchy, do so
+#
+if classes:
+    if args["<wd-dump-json>"].endswith(".json"):
+        mapFileName = args["<wd-dump-json>"][:-5] + "-classes.json"
+    else:
+        mapFileName = args["<wd-dump-json>"] + "-classes.json"
+
+    if not os.path.exists(mapFileName):
+        output = open(mapFileName, "w")
+        json.dump(classes, output, sort_keys=True, indent=4, separators=(',', ': '))
+        output.close()
