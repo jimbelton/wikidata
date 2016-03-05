@@ -27,10 +27,11 @@ Usage: `wd-extract.py [-c|-C] [-fnr] [-l lc] [-p lc] [-s pat] [-t type] [-w]` *w
 
 Generates a class diagram from extracted classes
 
-Usage: `wd-diagram.py [-dfw]` *wd-classes-json*
+Usage: `wd-diagram.py [-dfw] [-l n] *wd-classes-json*
 
 | Option | Long Option | Description |
 | --- | --- | --- |
-| -d | --dot         | Output the diagram in dot format (default: ascii) |
+| -d | --dot         | Output the diagram in dot format (default=ascii) |
 | -f | --failonerror | If present, exit if an error occurs |
+| -l | --levels n    | Show only the first n levels of classes below the root in the hierarchy (default=unlimited)
 | -w | --warning     | Print warnings |
