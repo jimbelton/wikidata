@@ -2,11 +2,12 @@
 
 """wd-diagram.py - generate a class diagram from extracted classes
 
-Usage: wd-diagram.py [-dfw] <wd-classes-json>
+Usage: wd-diagram.py [-dfw] [-l n] <wd-classes-json>
 
 Options:
-    -d --dot          Output the diagram in dot format (default: ascii)
+    -d --dot          Output the diagram in dot format (default=ascii)
     -f --failonerror  If present, exit if an error occurs
+    -l --levels n     Number of levels deep to go (default=unlimited)
     -w --warning      Print warnings
 """
 
@@ -18,6 +19,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 from docopt  import docopt
 from options import error, fatal, warn, options
 args                     = docopt(__doc__, version='1.0')
+levels                   = int(args["--levels"]) if args["--levels"] else 1000000
 options["ignore-errors"] = not args["--failonerror"]
 options["warning"]       = args["--warning"]
 
@@ -25,6 +27,9 @@ classes  = json.load(open(args["<wd-classes-json>"]))
 idEntity = None
 
 def printSubtree(idRoot, parents=set(), indent=""):
+    if levels and len(parents) >= levels:
+        return
+
     if idRoot in parents:
         error("Class '%s' contains a self reference" % idRoot)
         return
