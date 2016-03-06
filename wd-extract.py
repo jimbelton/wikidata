@@ -12,7 +12,7 @@ Options:
     -n --names          Print labels only instead of dumping objects in JSON
     -p --properties lc  Replace property ids with labels in language lc, falling back to english or a random language if needed
     -s --sitelinks pat  Pattern for sitelinks to include or "" to exclude all sitelinks
-    -t --type type      Type of object to extract (property|item). Default=all
+    -t --type type      Type of object to extract (property|item|id). Default=all
     -R --references     Don't remove references
     -w --warning        Print warnings
 """
@@ -57,10 +57,44 @@ def depluralize(string):
 
     return string
 
+# Extract the type and value (if any) a claim and return as {"type": <type>[, "value": <value>]}
+#
+def getClaimTypeAndValue(claim):
+    statement = {}
+
+    try:
+        if claim["mainsnak"]["snaktype"] == "novalue":
+            statement["type"] = "novalue"
+        elif claim["mainsnak"]["snaktype"] == "somevalue":
+            statement["type"] = "somevalue"
+        elif claim["mainsnak"]["datavalue"]["type"] == "wikibase-entityid":
+            statement["type"]  = claim["mainsnak"]["datavalue"]["value"]["entity-type"]
+            statement["value"] = "P" if statement["type"] == "property" else "Q"
+            statement["value"] += str(claim["mainsnak"]["datavalue"]["value"]["numeric-id"])
+        else:
+            statement["type"]  = claim["mainsnak"]["datavalue"]["type"]
+            statement["value"] = claim["mainsnak"]["datavalue"]["value"]
+
+    except KeyError:
+        if "mainsnak" not in claim:
+            error("property %s claim has no mainsnak" % property, file=args["<wd-dump-json>"], line=lineNum)
+        elif "datavalue" not in claim["mainsnak"]:
+            error("property %s claim mainsnak has no datavalue" % property, file=args["<wd-dump-json>"], line=lineNum)
+        elif "type" not in claim["mainsnak"]["datavalue"]:
+            error("property %s claim mainsnak datavalue has no type" % property, file=args["<wd-dump-json>"], line=lineNum)
+        elif "value" not in claim["mainsnak"]["datavalue"]:
+            error("property %s claim mainsnak datavalue of type %s has no value"
+                % (property, claim["mainsnak"]["datavalue"]["type"]), file=args["<wd-dump-json>"], line=lineNum)
+
+        fatal("claim:" + json.dumps(claim, sort_keys=True, indent=4, separators=(',', ': ')))
+
+    return statement
+
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 from docopt  import docopt
 from options import error, fatal, warn, options
 args       = docopt(__doc__, version='1.0')
+classId    = None
 classes    = {} if args["--classes"] else None
 keepClaims = args["--claims"]
 lang       = args["--language"]
@@ -71,6 +105,12 @@ type       = args["--type"]
 keepRefs   = args["--references"]
 options["ignore-errors"] = not args["--failonerror"]
 options["warning"]       = args["--warning"]
+
+# If type is a class of item
+#
+if type and type.startswith("Q"):
+    classId = type
+    type    = "item"
 
 if site and site != "":
     sitePat = re.compile(site + "$")
@@ -135,16 +175,40 @@ def process(command="extract", output=sys.stdout):
             endOfLine = ",\n    "
             continue
 
-        # If filtering (either just properties or just items), skip if not the one we want.
+        # If filtering by type (either just properties or just items), skip if not the one we want.
         #
         if type and obj["type"] != type:
             continue
+
 
         # Skip objects that don't have an id (with an error)
         #
         if "id" not in obj:
             error("object has no id", file=args["<wd-dump-json>"], line=lineNum)
             continue
+
+        # If filtering by class
+        #
+        if classId:
+            if "claims" not in obj or "P31" not in obj["claims"]:
+                warn("Object '%s' has no class (claim with property P31)" % obj["id"], file=args["<wd-dump-json>"], line=lineNum)
+                continue
+
+            match = False
+
+            for claim in obj["claims"]["P31"]:
+                statement = getClaimTypeAndValue(claim)
+
+                try:
+                    if statement["value"] == classId:
+                        match = True
+                        break
+                except KeyError:
+                    error("Object '%s' has a class with no value: %s" % (obj["id"], str(statement)), file=args["<wd-dump-json>"],
+                          line=lineNum)
+
+            if not match:
+                continue
 
         # Collapse multilingual string tables if desired.
         #
@@ -171,6 +235,8 @@ def process(command="extract", output=sys.stdout):
         if names:
             try:
                 print obj["label"]
+            except UnicodeEncodeError:
+                print json.dumps(obj["label"])
             except KeyError:
                 error("Object %s has no label" % obj["id"], file=args["<wd-dump-json>"], line=lineNum)
 
@@ -197,35 +263,7 @@ def process(command="extract", output=sys.stdout):
                 # For each claim of this property
                 #
                 for claim in obj["claims"][property]:
-                    statement = {}
-
-                    try:
-                        if claim["mainsnak"]["snaktype"] == "novalue":
-                            statement["type"] = "novalue"
-                        elif claim["mainsnak"]["snaktype"] == "somevalue":
-                            statement["type"] = "somevalue"
-                        elif claim["mainsnak"]["datavalue"]["type"] == "wikibase-entityid":
-                            statement["type"]  = claim["mainsnak"]["datavalue"]["value"]["entity-type"]
-                            statement["value"] = "P" if statement["type"] == "property" else "Q"
-                            statement["value"] += str(claim["mainsnak"]["datavalue"]["value"]["numeric-id"])
-                        else:
-                            statement["type"]  = claim["mainsnak"]["datavalue"]["type"]
-                            statement["value"] = claim["mainsnak"]["datavalue"]["value"]
-
-                    except KeyError:
-                        if "mainsnak" not in claim:
-                            error("property %s claim has no mainsnak" % property, file=args["<wd-dump-json>"], line=lineNum)
-                        elif "datavalue" not in claim["mainsnak"]:
-                            error("property %s claim mainsnak has no datavalue" % property, file=args["<wd-dump-json>"], line=lineNum)
-                        elif "type" not in claim["mainsnak"]["datavalue"]:
-                            error("property %s claim mainsnak datavalue has no type" % property, file=args["<wd-dump-json>"], line=lineNum)
-                        elif "value" not in claim["mainsnak"]["datavalue"]:
-                            error("property %s claim mainsnak datavalue of type %s has no value"
-                                % (property, claim["mainsnak"]["datavalue"]["type"]), file=args["<wd-dump-json>"], line=lineNum)
-
-                        fatal("claim:" + json.dumps(claim, sort_keys=True, indent=4, separators=(',', ': ')))
-
-                    obj[label].append(statement)
+                    obj[label].append(getClaimTypeAndValue(claim))
 
                 if classes != None and property == "P279":
                     classes[obj["id"]] = {"subclass of": []}
@@ -284,6 +322,9 @@ if properties:
         output.close()
 
     properties = json.load(open(mapFileName))
+
+    if "P31" not in properties:
+        fatal("Property P31 (instance of) not found!")
 
     if "P279" not in properties:
         fatal("Property P279 (subclass of) not found!")
