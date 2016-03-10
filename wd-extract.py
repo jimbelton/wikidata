@@ -2,11 +2,12 @@
 
 """wd-extract.py - Extract data from a JSON dump of wikidata.org
 
-Usage: wd-extract.py [-c|-C] [-fnR] [-l lc] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
+Usage: wd-extract.py [-c|-C] [-DfnR] [-i file] [-l lc] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
 
 Options:
     -C --claims         Don't simplify claims
     -c --classes        Extract the class hierarchy (requires simplifying the claims)
+    -D --datatypes      Don't simplify datatypes
     -f --failonerror    If present, exit if an error occurs
     -l --language lc    Use language lc for all strings, falling back to en if needed, falling back to a random language if needed
     -n --names          Print labels only instead of dumping objects in JSON
@@ -59,7 +60,7 @@ def depluralize(string):
 
 # Extract the type and value (if any) a claim and return as {"type": <type>[, "value": <value>]}
 #
-def getClaimTypeAndValue(claim):
+def getClaimValue(claim):
     statement = {}
 
     try:
@@ -71,6 +72,8 @@ def getClaimTypeAndValue(claim):
             statement["type"]  = claim["mainsnak"]["datavalue"]["value"]["entity-type"]
             statement["value"] = "P" if statement["type"] == "property" else "Q"
             statement["value"] += str(claim["mainsnak"]["datavalue"]["value"]["numeric-id"])
+        elif claim["mainsnak"]["datavalue"]["type"] == "string":
+            statement = claim["mainsnak"]["datavalue"]["value"]
         else:
             statement["type"]  = claim["mainsnak"]["datavalue"]["type"]
             statement["value"] = claim["mainsnak"]["datavalue"]["value"]
@@ -97,6 +100,7 @@ args       = docopt(__doc__, version='1.0')
 classId    = None
 classes    = {} if args["--classes"] else None
 keepClaims = args["--claims"]
+keepTypes  = args["--datatypes"]
 lang       = args["--language"]
 names      = args["--names"]
 properties = args["--properties"]
@@ -263,13 +267,13 @@ def process(command="extract", output=sys.stdout):
                 # For each claim of this property
                 #
                 for claim in obj["claims"][property]:
-                    obj[label].append(getClaimTypeAndValue(claim))
+                    obj[label].append(getClaimValue(claim))
 
                 if classes != None and property == "P279":
                     classes[obj["id"]] = {"subclass of": []}
 
                     for item in obj[label]:
-                        if  item["type"] != "item":
+                        if item["type"] != "item":
                             error("Expected type of class to be 'item', got '%s'" % item["type"], file=args["<wd-dump-json>"],
                                   line=lineNum)
 
@@ -286,7 +290,8 @@ def process(command="extract", output=sys.stdout):
                             classes[obj["id"]]["labels"] = obj["labels"]
 
                     except KeyError:
-                        warn("Class %s has no label%s" % (obj["id"], "" if lang else "s"), file=args["<wd-dump-json>"], line=lineNum)
+                        warn("Class %s has no label%s" % (obj["id"], "" if lang else "s"), file=args["<wd-dump-json>"],
+                             line=lineNum)
 
             del obj["claims"]
 
