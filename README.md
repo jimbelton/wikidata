@@ -22,7 +22,7 @@ Usage: `wd-extract.py [-c|-C] [-DfnR] [-i file] [-l lc] [-o file] [-p lc] [-s pa
 | -o | --output file    | Output the extracted data or list to a file. Default=stdout |
 | -p | --properties *lc* | Replace property ids with labels in language *lc*, falling back to **en** or a random language if needed. If not already present, a file named ########-properties.json will be generated, containing a map of property ids to labels. |
 | -s | --sitelinks *pat* | Pattern for sitelinks to include or "" to exclude all sitelinks. Sitelinks are links to other websites. |
-| -t | --type *type*     | Type of object to extract (property\|item). Default=all |
+| -t | --type *type*     | Type of object to extract (property\|item\|Q#). Default=all |
 | -R | --references    | TBD: Don't remove references. References are links to sources of information. |
 | -w | --warning       | Print warnings. |
 
