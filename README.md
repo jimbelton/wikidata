@@ -2,7 +2,7 @@
 Tools for working with wikidata (structured data from wikipedia)
 
 ## data/YYYYMMDD-properties.json
-These files are maps from property identifiers to (usually) english language labels. You can generate indeces and extracted data with whichever language you choose. For an example index, see [data/20160215-properties.json](https://github.com/jimbelton/wikidata/blob/master/data/20160215-properties.json)
+These files are maps from property identifiers to (usually) english language labels. You can generate property maps and extracted data with whichever language you choose. For an example index, see [data/20160215-properties.json](https://github.com/jimbelton/wikidata/blob/master/data/20160215-properties.json)
 
 ## wd-extract.py
 
