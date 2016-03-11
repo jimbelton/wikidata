@@ -23,6 +23,12 @@ Usage: `wd-extract.py [-c|-C] [-fnr] [-l lc] [-p lc] [-s pat] [-t type] [-w]` *w
 | -R | --references    | TBD: Don't remove references. References are links to sources of information. |
 | -w | --warning       | Print warnings. |
 
+### Examples
+To generate a sorted list of all of the books (id=Q571) in wikidata (72432 as of 2016-02-15), run the following command:
+```
+./wd-extract.py -n -l en -p en -s "" -t Q571 data/20160215.json | sort -d
+```
+
 ## wd-diagram.py
 
 Generates a class diagram from extracted classes
