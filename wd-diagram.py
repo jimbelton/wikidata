@@ -43,11 +43,13 @@ def printSubtree(idRoot, parents=set(), indent=""):
         if len(subclasses) > 1:
             subclasses.sort()
 
-            for idSubclass in subclasses[1:-1]:
+            for idSubclass in subclasses[:-1]:
                 try:
                     print indent + " +-" + classes[idSubclass]["label"]
                 except UnicodeEncodeError:
                     print indent + " +-" + json.dumps(classes[idSubclass]["label"])
+                except KeyError:
+                    error("Class %s has no label" % idSubclass)
 
                 printSubtree(idSubclass, parents, indent + " | ")
 

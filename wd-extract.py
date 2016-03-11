@@ -70,15 +70,18 @@ def getClaimValue(claim):
             statement["type"] = "novalue"
         elif claim["mainsnak"]["snaktype"] == "somevalue":
             statement["type"] = "somevalue"
-        elif claim["mainsnak"]["datavalue"]["type"] == "wikibase-entityid":
-            statement["type"]  = claim["mainsnak"]["datavalue"]["value"]["entity-type"]
-            statement["value"] = "P" if statement["type"] == "property" else "Q"
-            statement["value"] += str(claim["mainsnak"]["datavalue"]["value"]["numeric-id"])
-        elif claim["mainsnak"]["datavalue"]["type"] == "string":
-            statement = claim["mainsnak"]["datavalue"]["value"]
         else:
-            statement["type"]  = claim["mainsnak"]["datavalue"]["type"]
-            statement["value"] = claim["mainsnak"]["datavalue"]["value"]
+            statementType = claim["mainsnak"]["datavalue"]["type"]
+
+            if statementType == "string":
+                statement = claim["mainsnak"]["datavalue"]["value"]
+            elif statementType == "wikibase-entityid":
+                statement["type"]  = claim["mainsnak"]["datavalue"]["value"]["entity-type"]
+                statement["value"] = "P" if statement["type"] == "property" else "Q"
+                statement["value"] += str(claim["mainsnak"]["datavalue"]["value"]["numeric-id"])
+            else:
+                statement["type"]  = statementType
+                statement["value"] = claim["mainsnak"]["datavalue"]["value"]
 
     except KeyError:
         if "mainsnak" not in claim:
@@ -101,7 +104,7 @@ from options import error, fatal, warn, options
 args        = docopt(__doc__, version='1.0')
 classId     = None
 classes     = {} if args["--classes"] else None
-index       = {} if args["--index"] else None
+indexFile   = open(args["--index"], "w") if args["--index"] else None
 keepClaims  = args["--claims"]
 keepTypes   = args["--datatypes"]
 lang        = args["--language"]
@@ -308,13 +311,15 @@ def process(command="extract", output=outputFile):
                     if not sitePat.match(link):
                         del obj["sitelinks"][link]
 
-        if index != None:
-            index[obj["id"]] = {"offset": output.tell()}
+        if indexFile != None:
+            indexOffset = output.tell()
 
-        output.write(json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': ')) + "\n")
+        output.write(endOfLine[:-4] + json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': ')))
 
-        if index != None:
-            index[obj["id"]]["length"] = output.tell() - index[obj["id"]]["offset"]
+        if indexFile != None:
+            indexFile.write('%s"%s": {"offset": %d, "length": %d}' % (endOfLine, obj["id"], indexOffset, output.tell() - indexOffset))
+
+        endOfLine = ",\n    "
 
 #
 # Main entry point
@@ -343,9 +348,18 @@ if properties:
     if "P279" not in properties:
         fatal("Property P279 (subclass of) not found!")
 
-# Now extract the data (or list the labels)
+# Now extract the data (or list the labels) and optionally, the index
 #
+if indexFile:
+    indexFile.write("{")
+
 process()
+outputFile.write("\n")
+outputFile.close()
+
+if indexFile:
+    indexFile.write("\n}\n")
+    indexFile.close()
 
 # If dumping the class hierarchy, do so
 #
@@ -360,9 +374,3 @@ if classes:
         json.dump(classes, output, sort_keys=True, indent=4, separators=(',', ': '))
         output.close()
 
-# If outputtin an index, do so
-#
-if index:
-    output = open(args["--index"], "w")
-    json.dump(index, output, sort_keys=True, indent=4, separators=(',', ': '))
-    output.close()
