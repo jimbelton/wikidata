@@ -2,14 +2,16 @@
 
 """wd-extract.py - Extract data from a JSON dump of wikidata.org
 
-Usage: wd-extract.py [-c|-C] [-DfnR] [-i file] [-l lc] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
+Usage: wd-extract.py [-c|-C] [-DfnR] [-i file] [-l lc] [-o file] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
 
 Options:
     -C --claims         Don't simplify claims
     -c --classes        Extract the class hierarchy (requires simplifying the claims)
     -D --datatypes      Don't simplify datatypes
     -f --failonerror    If present, exit if an error occurs
-    -l --language lc    Use language lc for all strings, falling back to en if needed, falling back to a random language if needed
+    -i --index file     Output an index to file
+    -l --language lc    Use language lc for all strings, falling back to en if needed, falling back to a random language if needed4
+    -o --output file    Output the extraction to file
     -n --names          Print labels only instead of dumping objects in JSON
     -p --properties lc  Replace property ids with labels in language lc, falling back to english or a random language if needed
     -s --sitelinks pat  Pattern for sitelinks to include or "" to exclude all sitelinks
@@ -96,17 +98,19 @@ def getClaimValue(claim):
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 from docopt  import docopt
 from options import error, fatal, warn, options
-args       = docopt(__doc__, version='1.0')
-classId    = None
-classes    = {} if args["--classes"] else None
-keepClaims = args["--claims"]
-keepTypes  = args["--datatypes"]
-lang       = args["--language"]
-names      = args["--names"]
-properties = args["--properties"]
-site       = args["--sitelinks"]
-type       = args["--type"]
-keepRefs   = args["--references"]
+args        = docopt(__doc__, version='1.0')
+classId     = None
+classes     = {} if args["--classes"] else None
+index       = {} if args["--index"] else None
+keepClaims  = args["--claims"]
+keepTypes   = args["--datatypes"]
+lang        = args["--language"]
+names       = args["--names"]
+outputFile  = open(args["--output"], "w") if args["--output"] else sys.stdout
+properties  = args["--properties"]
+site        = args["--sitelinks"]
+type        = args["--type"]
+keepRefs    = args["--references"]
 options["ignore-errors"] = not args["--failonerror"]
 options["warning"]       = args["--warning"]
 
@@ -124,9 +128,9 @@ if site and site != "":
 if names and lang == None:
     lang = "en"
 
-# Process the data file, extracting data by default and outputting it to standard output
+# Process the data file, extracting data by default and outputting it
 #
-def process(command="extract", output=sys.stdout):
+def process(command="extract", output=outputFile):
     wikidata  = open(args["<wd-dump-json>"])
     lineNum   = 0
     endOfLine = "\n    "
@@ -140,7 +144,7 @@ def process(command="extract", output=sys.stdout):
         if not line:
             break
 
-        # Parse the next line, skipping the leading and trailing brackets
+        # Parse the next line, skipping the leading and trailing bracket lines
         #
         try:
             obj = json.loads(line[:-2])
@@ -183,7 +187,6 @@ def process(command="extract", output=sys.stdout):
         #
         if type and obj["type"] != type:
             continue
-
 
         # Skip objects that don't have an id (with an error)
         #
@@ -305,7 +308,13 @@ def process(command="extract", output=sys.stdout):
                     if not sitePat.match(link):
                         del obj["sitelinks"][link]
 
-        print json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': '))
+        if index != None:
+            index[obj["id"]] = {"offset": output.tell()}
+
+        output.write(json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': ')) + "\n")
+
+        if index != None:
+            index[obj["id"]]["length"] = output.tell() - index[obj["id"]]["offset"]
 
 #
 # Main entry point
@@ -315,18 +324,18 @@ def process(command="extract", output=sys.stdout):
 #
 if properties:
     if args["<wd-dump-json>"].endswith(".json"):
-        mapFileName = args["<wd-dump-json>"][:-5] + "-properties.json"
+        propFileName = args["<wd-dump-json>"][:-5] + "-properties.json"
     else:
-        mapFileName = args["<wd-dump-json>"] + "-properties.json"
+        propFileName = args["<wd-dump-json>"] + "-properties.json"
 
-    if not os.path.exists(mapFileName):
-        output = open(mapFileName, "w")
-        output.write("{")
-        process(command="map", output=output)
-        output.write("\n}\n")
-        output.close()
+    if not os.path.exists(propFileName):
+        propFile = open(propFileName, "w")
+        propFile.write("{")
+        process(command="map", output=propFile)
+        propFile.write("\n}\n")
+        propFile.close()
 
-    properties = json.load(open(mapFileName))
+    properties = json.load(open(propFileName))
 
     if "P31" not in properties:
         fatal("Property P31 (instance of) not found!")
@@ -342,11 +351,18 @@ process()
 #
 if classes:
     if args["<wd-dump-json>"].endswith(".json"):
-        mapFileName = args["<wd-dump-json>"][:-5] + "-classes.json"
+        classFileName = args["<wd-dump-json>"][:-5] + "-classes.json"
     else:
-        mapFileName = args["<wd-dump-json>"] + "-classes.json"
+        classFileName = args["<wd-dump-json>"] + "-classes.json"
 
-    if not os.path.exists(mapFileName):
-        output = open(mapFileName, "w")
+    if not os.path.exists(classFileName):
+        output = open(classFileName, "w")
         json.dump(classes, output, sort_keys=True, indent=4, separators=(',', ': '))
         output.close()
+
+# If outputtin an index, do so
+#
+if index:
+    output = open(args["--index"], "w")
+    json.dump(index, output, sort_keys=True, indent=4, separators=(',', ': '))
+    output.close()
