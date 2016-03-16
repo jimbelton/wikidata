@@ -23,6 +23,7 @@ Options:
 import json
 import os
 import re
+import struct
 import sys
 
 # Pick the the string for the requested language from a multilingual string map, falling back to English, or to the first string.
@@ -104,7 +105,7 @@ from options import error, fatal, warn, options
 args        = docopt(__doc__, version='1.0')
 classId     = None
 classes     = {} if args["--classes"] else None
-indexFile   = open(args["--index"], "w") if args["--index"] else None
+indexFile   = open(args["--index"], "wb") if args["--index"] else None
 keepClaims  = args["--claims"]
 keepTypes   = args["--datatypes"]
 lang        = args["--language"]
@@ -134,9 +135,12 @@ if names and lang == None:
 # Process the data file, extracting data by default and outputting it
 #
 def process(command="extract", output=outputFile):
-    wikidata  = open(args["<wd-dump-json>"])
-    lineNum   = 0
-    endOfLine = "\n    "
+    global indexFile
+    wikidata   = open(args["<wd-dump-json>"])
+    lineNum    = 0
+    endOfLine  = "\n    "
+    lastId     = 0
+    outOfOrder = []
 
     while True:
         line    = wikidata.readline()
@@ -311,15 +315,57 @@ def process(command="extract", output=outputFile):
                     if not sitePat.match(link):
                         del obj["sitelinks"][link]
 
+        # Prepare the index entry unless its out of order
         if indexFile != None:
             indexOffset = output.tell()
+            indexId     = int(obj["id"][1:])
 
-        output.write(endOfLine[:-4] + json.dumps(obj, sort_keys=True, indent=4, separators=(',', ': ')))
+        json.dump(obj, output, sort_keys=True, separators=(',', ':'))
+        output.write("\n")
 
+        # Complete the index entry and write it if in order, otherwise save for sort/merge
         if indexFile != None:
-            indexFile.write('%s"%s": {"offset": %d, "length": %d}' % (endOfLine, obj["id"], indexOffset, output.tell() - indexOffset))
+            indexBytes = struct.pack(">QQQ", indexId, indexOffset, output.tell() - indexOffset)
+
+            if indexId < lastId:
+                warn("Item id %d comes after %d in the dump: out of order ids" % (indexId, lastId), file=args["<wd-dump-json>"],
+                     line=lineNum)
+                outOfOrder.append(indexBytes)
+
+            else:
+                indexFile.write(indexBytes)
+                lastId = indexId
 
         endOfLine = ",\n    "
+
+    if len(outOfOrder) == 0:
+        return
+
+    error("Number of OOO elements = %d" % len(outOfOrder))
+
+    indexFile.close()
+    outOfOrder.sort()
+    os.rename(args["--index"], args["--index"] + ".part")
+    partFile  = open(args["--index"] + ".part", "rb")
+    indexFile = open(args["--index"], "wb")
+    nextOOO   = 0
+    nextPart  = partFile.read(24)
+
+    while nextPart:
+        if nextOOO < len(outOfOrder) and outOfOrder[nextOOO] < nextPart:
+            indexFile.write(outOfOrder[nextOOO])
+            nextOOO += 1
+            continue
+
+        indexFile.write(nextPart)
+        nextPart = partFile.read(24)
+
+    error("Index file size %d, number of OOO elements %d, number left %d"
+          % (indexFile.tell(), len(outOfOrder), len(outOfOrder) - nextOOO))
+
+    while nextOOO < len(outOfOrder):
+        indexFile.write(outOfOrder[nextOOO])
+        nextOOO += 1
 
 #
 # Main entry point
@@ -350,15 +396,10 @@ if properties:
 
 # Now extract the data (or list the labels) and optionally, the index
 #
-if indexFile:
-    indexFile.write("{")
-
 process()
-outputFile.write("\n")
 outputFile.close()
 
 if indexFile:
-    indexFile.write("\n}\n")
     indexFile.close()
 
 # If dumping the class hierarchy, do so
