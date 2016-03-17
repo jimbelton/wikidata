@@ -6,8 +6,8 @@ class Index:
         size = os.path.getsize(indexFile)
         assert size % 24 == 0, "Index file '%s' is not a multiple of 24 bytes in length" % size
         self.top        = (size / 24) - 1
-        self.index      = open(indexFile, "rb+")
-        self.data       = open(dataFile,  "r+")
+        self.index      = open(indexFile, "rb")
+        self.data       = open(dataFile,  "r")
         self.entries    = {}
         self.entries[0] = struct.unpack(">QQQ", self.index.read(24))
         self.first      = self.entries[0][0]
