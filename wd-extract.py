@@ -2,22 +2,23 @@
 
 """wd-extract.py - Extract data from a JSON dump of wikidata.org
 
-Usage: wd-extract.py [-c|-C] [-DfnR] [-i file] [-l lc] [-o file] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
+Usage: wd-extract.py [-c|-C] [-DfnR] [-i file] [-I labels] [-l lc] [-o file] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
 
 Options:
-    -C --claims         Don't simplify claims
-    -c --classes        Extract the class hierarchy (requires simplifying the claims)
-    -D --datatypes      Don't simplify datatypes
-    -f --failonerror    If present, exit if an error occurs
-    -i --index file     Output an index to file
-    -l --language lc    Use language lc for all strings, falling back to en if needed, falling back to a random language if needed4
-    -o --output file    Output the extraction to file
-    -n --names          Print labels only instead of dumping objects in JSON
-    -p --properties lc  Replace property ids with labels in language lc, falling back to english or a random language if needed
-    -s --sitelinks pat  Pattern for sitelinks to include or "" to exclude all sitelinks
-    -t --type type      Type of object to extract (property|item|id). Default=all
-    -R --references     Don't remove references
-    -w --warning        Print warnings
+    -C --claims          Don't simplify claims
+    -c --classes         Extract the class hierarchy (requires simplifying the claims)
+    -D --datatypes       Don't simplify datatypes
+    -f --failonerror     If present, exit if an error occurs
+    -i --index file      Output an index to file
+    -I --include labels  Include the comma separated labeled properties (i.e. exclude them from the list of ignored properties)
+    -l --language lc     Use language lc for all strings, falling back to en if needed, falling back to a random language if needed4
+    -o --output file     Output the extraction to file
+    -n --names           Print labels only instead of dumping objects in JSON
+    -p --properties lc   Replace property ids with labels in language lc, falling back to english or a random language if needed
+    -s --sitelinks pat   Pattern for sitelinks to include or "" to exclude all sitelinks
+    -t --type type       Type of object to extract (property|item|id). Default=all
+    -R --references      Don't remove references
+    -w --warning         Print warnings
 """
 
 import json
@@ -25,6 +26,31 @@ import os
 import re
 import struct
 import sys
+
+ignoredProperties = {
+    "BNCF Thesaurus",                        # Florentine national central library
+    "BnF identifier",                        # French national library
+    "Commons category",                      # Wikimedia Commons
+    "Commons gallery",                       # Wikimedia Commons
+    "Freebase identifier",                   # Defunct structured data source, purchased and closed by Google
+    "GND identifier",                        # German universal authority file
+    "IMDb identifier",                       # Internet movie database
+    "ISFDB title ID",                        # Internet speculative fiction database
+    "LCAuth identifier",                     # US libary of congress
+    "Library of Congress Classification",    # US libary of congress
+    "LibraryThing work identifier",          # LibraryThing
+    "MusicBrainz artist ID",                 # MusicBrainz
+    "MusicBrainz release group ID",          # MusicBrainz
+    "MusicBrainz work ID",                   # MusicBrainz
+    "NDL identifier",                        # Japan national diet library
+    "NLA (Australia) identifier",            # Australian national library
+    "OCLC control number",                   # WorldCat
+    "Open Library identifier",               # openlibrary.org
+    "PSH ID",                                # Czech technical library
+    "Regensburg Classification",             # German university of Regensburg library
+    "SUDOC authorities",                     # French university libraries
+    "VIAF identifier"                        # Virtual international authority file
+}
 
 # Pick the the string for the requested language from a multilingual string map, falling back to English, or to the first string.
 #
@@ -108,6 +134,7 @@ classes     = {} if args["--classes"] else None
 indexFile   = open(args["--index"], "wb") if args["--index"] else None
 keepClaims  = args["--claims"]
 keepTypes   = args["--datatypes"]
+keepProps   = set(",".split(args["--include"])) if args["--include"] else set()
 lang        = args["--language"]
 names       = args["--names"]
 outputFile  = open(args["--output"], "w") if args["--output"] else sys.stdout
@@ -192,8 +219,11 @@ def process(command="extract", output=outputFile):
 
         # If filtering by type (either just properties or just items), skip if not the one we want.
         #
-        if type and obj["type"] != type:
-            continue
+        if type:
+            if obj["type"] != type:
+                continue
+
+            del obj["type"]    # Remove it, since it will be the same in every object
 
         # Skip objects that don't have an id (with an error)
         #
@@ -269,6 +299,12 @@ def process(command="extract", output=outputFile):
                 if properties:
                     try:
                         label = properties[property]
+
+                        # Skip ignoredProperties but not any included properties
+                        #
+                        if label in ignoredProperties and label not in keepProps:
+                            continue
+
                     except KeyError:
                         warn("Property '%s' not in map" % property, file=args["<wd-dump-json>"], line=lineNum)
 
