@@ -36,7 +36,7 @@ To generate a sorted list of all of the books (id=Q571) in wikidata (72432 as of
 
 Generates a class diagram from extracted classes
 
-Usage: `wd-diagram.py [-dfw] [-l n] *wd-classes-json*
+Usage: `wd-diagram.py [-dfw] [-l n]` *wd-classes-json*
 
 | Option | Long Option | Description |
 | --- | --- | --- |
@@ -44,3 +44,9 @@ Usage: `wd-diagram.py [-dfw] [-l n] *wd-classes-json*
 | -f | --failonerror | If present, exit if an error occurs |
 | -l | --levels n    | Show only the first n levels of classes below the root in the hierarchy (default=unlimited)
 | -w | --warning     | Print warnings |
+
+## wd-lookup.py
+
+Looks up a key in the data extracted from a wikidata dump (e.g. an item identifier number without the leading **Q**)
+
+Usage: `wd-lookup` *key* *data-file* *index-file*
