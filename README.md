@@ -8,7 +8,7 @@ These files are maps from property identifiers to (usually) english language lab
 
 Extract data from a JSON dump of wikidata.org. Currently, extracting only English strings (-l en) and stripping all sitelinks reduces the size of the JSON by roughly 10 times.
 
-Usage: `wd-extract.py [-c|-C] [-DfnR] [-i file] [-l lc] [-o file] [-p lc] [-s pat] [-t type] [-w]` *wd-dump-json*
+Usage: `wd-extract.py [-c|-C] [-DfnR] [-i file] [-I labels] [-l lc] [-o file] [-p lc] [-s pat] [-t type] [-w]` *wd-dump-json*
 
 | Option | Long Option | Description |
 | --- | --- | --- |
