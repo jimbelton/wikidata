@@ -87,7 +87,7 @@ def depluralize(string):
 
     return string
 
-# Extract the type and value (if any) a claim and return as {"type": <type>[, "value": <value>]}
+# Extract the type and value (if any) of a claim and return as {"type": <type>[, "value": <value>]}
 #
 def getClaimValue(claim):
     statement = {}
