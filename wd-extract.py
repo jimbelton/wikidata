@@ -2,16 +2,17 @@
 
 """wd-extract.py - Extract data from a JSON dump of wikidata.org
 
-Usage: wd-extract.py [-c|-C] [-DfnR] [-i file] [-I labels] [-l lc] [-o file] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
+Usage: wd-extract.py [-c|-C] [-DfFnR] [-i file] [-I labels] [-l lc] [-o file] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
 
 Options:
     -C --claims          Don't simplify claims
     -c --classes         Extract the class hierarchy (requires simplifying the claims)
     -D --datatypes       Don't simplify datatypes
     -f --failonerror     If present, exit if an error occurs
-    -i --index file      Output an index to file
+    -F --format          Format the extracted data readably; this is mainly useful for testing
+    -i --index file      Output an index to file; you must specify a type with -t
     -I --include labels  Include the comma separated labeled properties (i.e. exclude them from the list of ignored properties)
-    -l --language lc     Use language lc for all strings, falling back to en if needed, falling back to a random language if needed4
+    -l --language lc     Use language lc for all strings, falling back to en if needed, falling back to a random language if needed
     -o --output file     Output the extraction to file
     -n --names           Print labels only instead of dumping objects in JSON
     -p --properties lc   Replace property ids with labels in language lc, falling back to english or a random language if needed
@@ -36,6 +37,7 @@ ignoredProperties = {
     "GND identifier",                        # German universal authority file
     "IMDb identifier",                       # Internet movie database
     "ISFDB title ID",                        # Internet speculative fiction database
+    "KINENOTE film ID",                      # Japanese KINENOTE movie database
     "LCAuth identifier",                     # US libary of congress
     "Library of Congress Classification",    # US libary of congress
     "LibraryThing work identifier",          # LibraryThing
@@ -98,17 +100,20 @@ def getClaimValue(claim):
         elif claim["mainsnak"]["snaktype"] == "somevalue":
             statement["type"] = "somevalue"
         else:
-            statementType = claim["mainsnak"]["datavalue"]["type"]
+            dataValue     = claim["mainsnak"]["datavalue"]
+            statementType = dataValue["type"]
 
             if statementType == "string":
-                statement = claim["mainsnak"]["datavalue"]["value"]
+                statement = dataValue["value"]
             elif statementType == "wikibase-entityid":
-                statement["type"]  = claim["mainsnak"]["datavalue"]["value"]["entity-type"]
-                statement["value"] = "P" if statement["type"] == "property" else "Q"
-                statement["value"] += str(claim["mainsnak"]["datavalue"]["value"]["numeric-id"])
+                statement["type"]   = dataValue["value"]["entity-type"]
+                statement["value"]  = "P" if statement["type"] == "property" else "Q"
+                statement["value"] += str(dataValue["value"]["numeric-id"])
+            elif statementType == "time":
+                statement = simplify.time(dataValue)
             else:
                 statement["type"]  = statementType
-                statement["value"] = claim["mainsnak"]["datavalue"]["value"]
+                statement["value"] = dataValue["value"]
 
     except KeyError:
         if "mainsnak" not in claim:
@@ -128,6 +133,7 @@ def getClaimValue(claim):
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 from docopt  import docopt
 from options import error, fatal, warn, options
+import simplify
 args        = docopt(__doc__, version='1.0')
 classId     = None
 classes     = {} if args["--classes"] else None
@@ -315,6 +321,8 @@ def process(command="extract", output=outputFile):
                 for claim in obj["claims"][property]:
                     obj[label].append(getClaimValue(claim))
 
+                # If building a class hierarchy and this item is a class (i.e. has a "subclass of" property)
+                #
                 if classes != None and property == "P279":
                     classes[obj["id"]] = {"subclass of": []}
 
@@ -356,7 +364,11 @@ def process(command="extract", output=outputFile):
             indexOffset = output.tell()
             indexId     = int(obj["id"][1:])
 
-        json.dump(obj, output, sort_keys=True, separators=(',', ':'))
+        if args["--format"]:
+            json.dump(obj, output, sort_keys=True, indent=4, separators=(',', ': '))
+        else:
+            json.dump(obj, output, sort_keys=True, separators=(',', ':'))
+
         output.write("\n")
 
         # Complete the index entry and write it if in order, otherwise save for sort/merge

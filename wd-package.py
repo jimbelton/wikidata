@@ -18,6 +18,7 @@ unwantedProperties = {
 #    "GND identifier",                        # German universal authority file
 #    "IMDb identifier",                       # Internet movie database
 #    "ISFDB title ID",                        # Internet speculative fiction database
+    "KINENOTE film ID"                      # Japanese KINENOTE movie database
 #    "LCAuth identifier",                     # US libary of congress
 #    "Library of Congress Classification",    # US libary of congress
 #    "LibraryThing work identifier",          # LibraryThing
@@ -37,14 +38,19 @@ unwantedProperties = {
 # For each package, the map of properties that point to other objects to the names of collections of those objects.
 #
 objectProperties = {
-    "books": {"author":                    "authors",
-              "genre":                     "genres",
-              "original language of work": "original languages",
-              "publisher":                 "publishers",
-              "series":                    "series"}
+    "books": {"author":                     "authors",
+              "award recieved",             "awards",
+              "country of origin",          "countries",
+              "creator":                    "creators",
+              "genre":                      "genres",
+              "nominated for",              "nominations",
+              "original language of work":  "languages",
+              "publisher":                  "publishers",
+              "series":                     "series"}
 }
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
+import simplify
 from docopt  import docopt
 from index   import Index
 from options import options, error, warn
@@ -108,6 +114,9 @@ for line in data:
                               file=args["<data>"], line=lineNum)
                     else:
                         object[property] = None    # None represents "somevalue", AKA unknown
+                elif value["type"] == "time":
+                    object[property] = simplify.time(value)
+
                 #else:
                 #    error("Item '%s' property %s contains a bad object: %s" % (object["label"], property, str(value)),
                 #          file=args["<data>"], line=lineNum)
