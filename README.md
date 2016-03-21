@@ -24,7 +24,7 @@ Usage: `wd-extract.py [-c|-C] [-DfFnR] [-i file] [-I labels] [-l lc] [-o file] [
 | -o | --output file    | Output the extracted data or list to a file. Default=stdout |
 | -p | --properties *lc* | Replace property ids with labels in language *lc*, falling back to **en** or a random language if needed. If not already present, a file named ########-properties.json will be generated, containing a map of property ids to labels. |
 | -s | --sitelinks *pat* | Pattern for sitelinks to include or "" to exclude all sitelinks. Sitelinks are links to other websites. |
-| -t | --type *type*     | Type of object to extract (property\|item\|Q#). Default=all. If specified, the type member will be removed from all extracted objects. |
+| -t | --type *type*     | Type of object to extract (all\|property\|item\|Q####). Default=item. If "all" not specified, the type member will be removed from all extracted objects. |
 | -R | --references    | TBD: Don't remove references. References are links to sources of information. |
 | -w | --warning       | Print warnings. |
 
@@ -86,6 +86,6 @@ Currently, *class* can be the item identifier of a class to package, or it can b
 
 ## wd-lookup.py
 
-Looks up a key (an item identifier number without the leading **Q**) in the data extracted from a wikidata dump. This script can be used to test the **Index** class.
+Looks up a key (an item identifier number with or without the leading **Q**) in the data extracted from a wikidata dump. This script can be used to test the **Index** class.
 
 Usage: `wd-lookup` *key* *data-file* *index-file*
