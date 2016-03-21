@@ -1,3 +1,9 @@
+# See https://www.wikidata.org/wiki/Special:ListDatatypes for descriptions of the wikidata data types
+
+# Simplifies a wikidata time. The result is a either a date or a time (date and time), depending on the precision. Leading + signs
+# are removed and dates lack the time component, but the types are otherwise like wikidata times. The properties of the value object
+# are collapsed into the date or time object.
+#
 def time(wdTime):
     assert wdTime["type"] == "time"
     wdValue    = wdTime["value"]

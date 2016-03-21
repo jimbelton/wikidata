@@ -10,14 +10,14 @@ Options:
     -D --datatypes       Don't simplify datatypes
     -f --failonerror     If present, exit if an error occurs
     -F --format          Format the extracted data readably; this is mainly useful for testing
-    -i --index file      Output an index to file; you must specify a type with -t
+    -i --index file      Output an index to file
     -I --include labels  Include the comma separated labeled properties (i.e. exclude them from the list of ignored properties)
     -l --language lc     Use language lc for all strings, falling back to en if needed, falling back to a random language if needed
     -o --output file     Output the extraction to file
     -n --names           Print labels only instead of dumping objects in JSON
     -p --properties lc   Replace property ids with labels in language lc, falling back to english or a random language if needed
     -s --sitelinks pat   Pattern for sitelinks to include or "" to exclude all sitelinks
-    -t --type type       Type of object to extract (property|item|id). Default=all
+    -t --type type       Type of objects to extract (all|property|Q####). Default=items
     -R --references      Don't remove references
     -w --warning         Print warnings
 """
@@ -146,7 +146,7 @@ names       = args["--names"]
 outputFile  = open(args["--output"], "w") if args["--output"] else sys.stdout
 properties  = args["--properties"]
 site        = args["--sitelinks"]
-type        = args["--type"]
+type        = args["--type"] if args["--type"] else "item"
 keepRefs    = args["--references"]
 options["ignore-errors"] = not args["--failonerror"]
 options["warning"]       = args["--warning"]
@@ -225,7 +225,7 @@ def process(command="extract", output=outputFile):
 
         # If filtering by type (either just properties or just items), skip if not the one we want.
         #
-        if type:
+        if type != "all":
             if obj["type"] != type:
                 continue
 

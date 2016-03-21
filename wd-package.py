@@ -18,7 +18,7 @@ unwantedProperties = {
 #    "GND identifier",                        # German universal authority file
 #    "IMDb identifier",                       # Internet movie database
 #    "ISFDB title ID",                        # Internet speculative fiction database
-    "KINENOTE film ID"                      # Japanese KINENOTE movie database
+#    "KINENOTE film ID",                      # Japanese KINENOTE movie database
 #    "LCAuth identifier",                     # US libary of congress
 #    "Library of Congress Classification",    # US libary of congress
 #    "LibraryThing work identifier",          # LibraryThing
@@ -39,18 +39,18 @@ unwantedProperties = {
 #
 objectProperties = {
     "books": {"author":                     "authors",
-              "award recieved",             "awards",
-              "country of origin",          "countries",
+              "award recieved":             "awards",
+              "country of origin":          "countries",
               "creator":                    "creators",
               "genre":                      "genres",
-              "nominated for",              "nominations",
+              "nominated for":              "nominations",
               "original language of work":  "languages",
               "publisher":                  "publishers",
               "series":                     "series"}
 }
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
-import simplify
+#import simplify
 from docopt  import docopt
 from index   import Index
 from options import options, error, warn
@@ -70,8 +70,26 @@ elif args["<class>"] == "books":
 else:
     sys.exit("%s: Class '%s' should be Q#### or books" % (__file__, args["<class>"]))
 
-package  = {"items": {}, args["<class>"]: {}}
+itemCache = {}
+package   = {"items": {}, args["<class>"]: {}}
 
+# Get an item, either from the package, the cache, or the extracted data
+#
+def getItem(itemId):
+    if itemId in package["items"]:
+        return package["items"][itemId]
+
+    if itemId not in itemCache:
+        try:
+            itemCache[itemId] = json.loads(index.get(int(itemId[1:])))    # The index uses integer ids
+        except KeyError:
+            error("Item %s was not found in the extracted data index" % itemId, file=args["<data>"], line=lineNum)
+            return {"label": itemId}
+
+    return itemCache[itemId]
+
+# Process the extracted data, looking for base types in the package (e.g. books)
+#
 for line in data:
     lineNum += 1
     object   = json.loads(line)
@@ -101,7 +119,7 @@ for line in data:
             # If value is a complex type
             if isinstance(value, dict) and "type" in value:
                 if value["type"] == "item":
-                    object[property][i] = value["value"]
+                    object[property][i] = getItem(value["value"])["label"]
                 elif value["type"] == "novalue":
                     if len(object[property]) != 1:
                         error("Item '%s' property %s has 'novalue' in addition to other values" % (object["label"], property),
@@ -114,8 +132,8 @@ for line in data:
                               file=args["<data>"], line=lineNum)
                     else:
                         object[property] = None    # None represents "somevalue", AKA unknown
-                elif value["type"] == "time":
-                    object[property] = simplify.time(value)
+                #elif value["type"] == "time":
+                #    object[property] = simplify.time(value)
 
                 #else:
                 #    error("Item '%s' property %s contains a bad object: %s" % (object["label"], property, str(value)),

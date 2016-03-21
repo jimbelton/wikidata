@@ -13,13 +13,15 @@ class Index:
         self.first      = self.entries[0][0]
         self.last       = self.read(self.top)[0]
 
+    # Read a 24 byte entry [0..top] from the index and return the entry as a triple of integers
     def read(self, entry):
         self.index.seek(entry * 24)    # Seek to the entry
         self.entries[entry] = struct.unpack(">QQQ", self.index.read(24))
         return self.entries[entry]
 
-    def find(self, key, first, last):
-        middle = int((first + last) / 2)
+    # Search the index for a value using a binary search and cacheing the entries
+    def find(self, key, bottom, top):
+        middle = int((bottom + top) / 2)
 
         # If entry is not in the cache, read it
         if middle not in self.entries:
@@ -31,16 +33,16 @@ class Index:
 
         # Key is before middle
         if key < self.entries[middle][0]:
-            if first == middle:
+            if bottom == middle:
                 return None
 
-            return self.find(key, first, middle - 1)
+            return self.find(key, bottom, middle - 1)
 
-        # Degenerate case of first == last
-        if middle == last:
+        # Degenerate case of bottom == top
+        if middle == top:
             return None
 
-        return self.find(key, middle + 1, last)
+        return self.find(key, middle + 1, top)
 
     def get(self, key):
         if key < self.first:
@@ -49,7 +51,7 @@ class Index:
         if key > self.last:
             raise KeyError("Key %d comes after last key in the index %d" % (key, self.last))
 
-        entry = self.find(key, self.first, self.last)
+        entry = self.find(key, 0, self.top)
 
         if entry == None:
             raise KeyError("Key %d not found in index" % key)
