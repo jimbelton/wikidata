@@ -119,7 +119,12 @@ for line in data:
             # If value is a complex type
             if isinstance(value, dict) and "type" in value:
                 if value["type"] == "item":
-                    object[property][i] = getItem(value["value"])["label"]
+                    try:
+                        object[property][i] = getItem(value["value"])["label"]
+                    except KeyError:
+                        error("Item '%s' property %s has a value that is item '%s' that has no label"
+                              % (object["label"], property, value['value']), file=args["<data>"], line=lineNum)
+                        object[property][i] = value["value"]
                 elif value["type"] == "novalue":
                     if len(object[property]) != 1:
                         error("Item '%s' property %s has 'novalue' in addition to other values" % (object["label"], property),
