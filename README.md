@@ -6,9 +6,9 @@ These files are maps from property identifiers to (usually) english language lab
 
 ## wd-extract.py
 
-Extract data from a JSON dump of wikidata.org. Currently, extracting only English strings (-l en) and stripping all sitelinks reduces the size of the JSON by roughly 10 times.
+Extract items from a JSON dump of wikidata.org. Currently, extracting only English strings (-l en) and stripping all sitelinks reduces the size of the JSON by roughly 10 times.
 
-Usage: `wd-extract.py [-c|-C] [-DfnR] [-i file] [-I labels] [-l lc] [-o file] [-p lc] [-s pat] [-t type] [-w]` *wd-dump-json*
+Usage: `wd-extract.py [-c|-C] [-DfFnR] [-i file] [-I labels] [-l lc] [-o file] [-p lc] [-s pat] [-t type] [-w]` *wd-dump-json*
 
 | Option | Long Option | Description |
 | --- | --- | --- |
@@ -16,7 +16,8 @@ Usage: `wd-extract.py [-c|-C] [-DfnR] [-i file] [-I labels] [-l lc] [-o file] [-
 | -c | --classes       | Create a class hierarchy and dump it in JSON format. |
 | -D | --datatypes    | Don't simplify datatypes. e.g. string values will remain wrapped in JSON objects |
 | -f | --failonerror  | If present, exit if an error occurs. |
-| -i | --index file    | Output an index to a file. This can be used to quickly read an item out of the extracted data.  |
+| -F | --format  | Format the extracted data readably; this is mainly useful for testing |
+| -i | --index file    | Output an index to a file. This can be used to quickly read an item out of the extracted data; you must specify a type with -t  |
 | -I | --include labels | Don't remove the properties in the quoted comma separated list of labels (see the list below for properties that would normally be removed) |
 | -l | --language *lc*   | Use language *lc* for all string members, falling back to **en** if needed, falling back to a random language if needed. The member name will also be depluralized (e.g. "labels" to "label"). If not specified, the multilingual string tables will be left unmodified. |
 | -n | --names         | Print labels only instead of dumping objects in JSON. Uses language, or **en** if none specified. |
@@ -46,6 +47,7 @@ The following properties will be removed unless explicitly included with the **-
 | GND identifier                        | German universal authority file |
 | IMDb identifier                       | Internet movie database |
 | ISFDB title ID                        | Internet speculative fiction database |
+| KINENOTE film ID                      | Japanese KINENOTE movie database |
 | LCAuth identifier                     | US libary of congress |
 | Library of Congress Classification    | US libary of congress |
 | LibraryThing work identifier          | LibraryThing |
