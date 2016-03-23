@@ -25,7 +25,7 @@ def time(wdTime):
         if wdValue["precision"] < 11:
             simpleTime["precision"] = wdValue["precision"]
 
-    # More accurate than a day but less that a second
+    # More accurate than a day but less than a second
     elif wdValue["precision"] < 14:
         simpleTime["precision"] = wdValue["precision"]
 

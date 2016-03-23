@@ -2,7 +2,10 @@
 
 """wd-package.py - Generate a package of data from data extracted from a wikidata dump
 
-Usage: wd-package.py <class> <data> <index>
+Usage: wd-package.py [-l languages] <class> <data> <index>
+
+Options:
+    -l --languages list    Include only books in one of the comma separated list of languages (default=all). e.g. "English,German"
 """
 
 import json
@@ -55,11 +58,12 @@ from docopt  import docopt
 from index   import Index
 from options import options, error, warn
 options["ignore-errors"] = True
-args     = docopt(__doc__, version='1.0')
-data     = open(args["<data>"])
-index    = Index(args["<index>"], args["<data>"])
-classIds = set()
-lineNum  = 0
+args      = docopt(__doc__, version='1.0')
+data      = open(args["<data>"])
+index     = Index(args["<index>"], args["<data>"])
+languages = set(args["--languages"].split(',')) if args["--languages"] else None
+classIds  = set()
+lineNum   = 0
 
 if args["<class>"][:1] == "Q":
     classIds.add(args["<class>"])
@@ -114,8 +118,10 @@ for line in data:
             del object[property]
             continue
 
-        # Walk across the array of values
-        for i, value in enumerate(object[property]):
+        # Walk across the array of values backward, so that deletions don't screw up the traversal
+        for i in reversed(xrange(len(object[property]))):
+            value = object[property][i]
+
             # If value is a complex type
             if isinstance(value, dict) and "type" in value:
                 if value["type"] == "item":
@@ -129,20 +135,33 @@ for line in data:
                     if len(object[property]) != 1:
                         error("Item '%s' property %s has 'novalue' in addition to other values" % (object["label"], property),
                               file=args["<data>"], line=lineNum)
+                        del object[property][i]
                     else:
                         del(object[property])
                 elif value["type"] == "somevalue":
                     if len(object[property]) != 1:
-                        error("Item '%s' property %s has 'somevalue' in addition to other values" % (object["label"], property),
+                        warn("Item '%s' property %s has 'somevalue' in addition to other values" % (object["label"], property),
                               file=args["<data>"], line=lineNum)
+                        del object[property][i]
                     else:
                         object[property] = None    # None represents "somevalue", AKA unknown
-                #elif value["type"] == "time":
-                #    object[property] = simplify.time(value)
-
                 #else:
                 #    error("Item '%s' property %s contains a bad object: %s" % (object["label"], property, str(value)),
                 #          file=args["<data>"], line=lineNum)
+
+    # If we're filtering the languages and this in not one that we want, skip it
+    if languages and "original language of work" in object:
+        if len(set(object["original language of work"]) & languages) == 0:
+            try:
+                error("Item '%s' is in language '%s'" % (object["label"], ",".join(object["original language of work"])))
+            except UnicodeEncodeError:
+                try:
+                    error("Item '%s' is in language '%s'"
+                          % (json.dumps(object["label"]), ",".join(object["original language of work"])))
+                except UnicodeEncodeError:
+                    error("Item '%s' is in language '%s'"
+                          % (json.dumps(object["label"]),
+                             ",".join([json.dumps(language) for language in object["original language of work"]])))
 
     package["items"        ][object["id"]] = object
     package[args["<class>"]][object["id"]] = None

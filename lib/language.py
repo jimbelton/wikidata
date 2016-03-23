@@ -1,11 +1,18 @@
-# These are the primary language names and their codes from ISO 639-1
+# -*- coding: utf-8 -*-
+# All language names have had the words characters, languages and language removed and all remaining words capitalized
+# 1. The list of languages in ISO 639-1 is from the standard: http://www.loc.gov/standards/iso639-2/
+# 2. The list of languages in wikidata was taken from the 'original language of work' properties of all books in the dump from
+#    20160215, and may not be complete.
+
+# These are the primary language names and their codes from ISO 639-1, or in rare cases, from ISO 639-2
 #
-nameToIsoId = {
-    "Abkhaz":               "ab",
+nameToIso639Id = {
+    "Abkhazian":            "ab",
     "Afar":                 "aa",
     "Afrikaans":            "af",    # Found in wikidata
     "Akan":                 "ak",
     "Albanian":             "sq",
+    "Algonquian":           "alg",   # No similar language in ISO 639-1
     "Amharic":              "am",    # Found in wikidata
     "Arabic":               "ar",    # Found in wikidata
     "Aragonese":            "an",    # Found in wikidata
@@ -16,10 +23,12 @@ nameToIsoId = {
     "Aymara":               "ay",
     "Azerbaijani":          "az",    # Found in wikidata
     "Bambara":              "bm",
+    "Bantu":                "bnt",   # No similar language in ISO 639-1
     "Bashkir":              "ba",
     "Basque":               "eu",    # Found in wikidata
     "Belarusian":           "be",    # Found in wikidata
-    "Bengali"               "bn",    # Found in wikidata
+    "Bengali":              "bn",    # Found in wikidata
+    "Berber":               "ber",   # No similar language in ISO 639-1
     "Bihari":               "bh",
     "Bislama":              "bi",
     "Bosnian":              "bs",    # Found in wikidata
@@ -27,6 +36,7 @@ nameToIsoId = {
     "Bulgarian":            "bg",    # Found in wikidata
     "Burmese":              "my",    # Found in wikidata
     "Catalan":              "ca",    # Found in wikidata
+    "Central Khmer":        "km",
     "Chamorro":             "ch",
     "Chechen":              "ce",
     "Chichewa":             "ny",
@@ -49,7 +59,7 @@ nameToIsoId = {
     "Fijian":               "fj",
     "Finnish":              "fi",    # Found in wikidata
     "French":               "fr",    # Found in wikidata
-    "Fula":                 "ff",
+    "Fulah":                "ff",
     "Galician":             "gl",    # Found in wikidata
     "Ganda":                "lg",
     "Georgian":             "ka",    # Found in wikidata
@@ -81,7 +91,6 @@ nameToIsoId = {
     "Kanuri":               "kr",
     "Kashmiri":             "ks",
     "Kazakh":               "kk",
-    "Khmer":                "km",    # Found in wikidata
     "Kikuyu":               "ki",
     "Kinyarwanda":          "rw",
     "Kirundi":              "rn",
@@ -105,49 +114,54 @@ nameToIsoId = {
     "Malay":                "ms",    # Found in wikidata
     "Malayalam":            "ml",    # Found in wikidata
     "Maltese":              "mt",
-    "Māori":                "mi",
+    "Manx":                 "gv",
+    "Maori":                "mi",
     "Marathi":              "mr",    # Found in wikidata
     "Marshallese":          "mh",
+    "Mayan":                "myn",   # No similar language in ISO 639-1
     "Mongolian":            "mn",
-    "Nauruan":              "na",
+    "Nahuatl":              "nah",   # Found in wikidata. No similar language in ISO 639-1
+    "Nauru":                "na",
     "Navajo":               "nv",
-    "Northern Ndebele":     "nd",
-    "Nepali":               "ne",    # Found in wikidata
     "Ndonga":               "ng",
+    "Nepali":               "ne",    # Found in wikidata
+    "North Ndebele":        "nd",
+    "Northern Sami":        "se",
+    "Norwegian":            "no",    # Found in wikidata
     "Norwegian Bokmål":     "nb",
     "Norwegian Nynorsk":    "nn",
-    "Norwegian":            "no",    # Found in wikidata
     "Nuosu":                "ii",
     "Southern Ndebele":     "nr",
     "Occitan":              "oc",    # Found in wikidata
     "Ojibwe":               "oj",
     "Old Church Slavonic":  "cu",    # Found in wikidata
-    "Oromo":                "om",
     "Oriya":                "or",
+    "Oromo":                "om",
     "Ossetian":             "os",
-    "Panjabi":         ‎     "pa",
     "Pali":                 "pi",    # Found in wikidata
     "Pashto":               "ps",
     "Persian":              "fa",    # Found in wikidata
     "Polish":               "pl",    # Found in wikidata
     "Portuguese":           "pt",    # Found in wikidata
+    "Punjabi":              "pa",    # Found in wikidata
     "Quechua":              "qu",
     "Romansh":              "rm",    # Found in wikidata
     "Romanian":             "ro",    # Found in wikidata
+    "Rundi":                "rn",
     "Russian":              "ru",    # Found in wikidata
     "Samoan":               "sm",
     "Sango":                "sg",
     "Sanskrit":             "sa",    # Found in wikidata
     "Sardinian":            "sc",
-    "Northern Sami":        "se",
-    "Serbian":              "sr",    # Found in wikidata
     "Scottish Gaelic":      "gd",    # Found in wikidata
+    "Serbian":              "sr",    # Found in wikidata
     "Shona":                "sn",
     "Sindhi":               "sd",    # Found in wikidata
     "Sinhala":              "si",    # Found in wikidata
     "Slovak":               "sk",    # Found in wikidata
-    "Slovene":              "sl",    # Found in wikidata
+    "Slovenian":            "sl",    # Found in wikidata
     "Somali":               "so",
+    "South Ndebele":        "nr",
     "Southern Sotho":       "st",
     "Spanish":              "es",    # Found in wikidata
     "Sundanese":            "su",
@@ -155,7 +169,10 @@ nameToIsoId = {
     "Swati":                "ss",
     "Swedish":              "sv",    # Found in wikidata
     "Tagalog":              "tl",    # Found in wikidata
+    "Tahitian":             "ty",
+    "Tajik":                "tg",
     "Tamil":                "ta",    # Found in wikidata
+    "Tatar":                "tt",
     "Telugu":               "te",    # Found in wikidata
     "Tajik":                "tg",
     "Thai":                 "th",    # Found in wikidata
@@ -163,6 +180,8 @@ nameToIsoId = {
     "Tibetan":              "bo",
     "Tswana":               "tn",
     "Tonga":                "to",
+    "Tsonga":               "ts",
+    "Tswana":               "tn",
     "Turkish":              "tr",    # Found in wikidata
     "Turkmen":              "tk",
     "Tsonga":               "ts",
@@ -187,15 +206,18 @@ nameToIsoId = {
     "Zulu":                 "zu"
 }
 
-# These are aliases from ISO 639-1 and wikidata, and the closest ISO 639-1 codes (or, in a few cases, 639-2 codes)
+# These are aliases from ISO 639-1 and wikidata, and the closest ISO 639-1 codes (or, in a few cases, 639-2 codes). The wikidata
+# language aliases have been forced to the nearest 639-1 code whereever possible, with comments indicating that there is a better
+# fit in 639-2 if that is the case. This was done to keep the number of lanaguage codes to a minimum, but it means (for example)
+# that all Aryan languages map to "hi" (Hindi)
 #
-aliasToIsoId = {
+aliasToIso639Id = {
     "American English":                 "en",    # From wikidata
-    "ancient Greek":                    "el",    # From wikidata. Ancient Greek has its own code in ISO 639-2, "grc"
+    "Ancient Greek":                    "el",    # From wikidata. Ancient Greek has its own code in ISO 639-2, "grc"
     "Australian English":               "en",    # From wikidata
     "Austrian German":                  "de",    # From wikidata
     "Aramaic":                          "he",    # From wikidata. Aramaic has its own code in ISO 639-2, "arc"
-    "Awadhi language":                  "hi",    # From wikidata. Awadhi has its own code in ISO 639-2, "awa"
+    "Awadhi":                           "hi",    # From wikidata. Awadhi has its own code in ISO 639-2, "awa"
     "Bangla":                           "bn",
     "Bhojpuri":                         "bh",
     "Bokm\u00e5l":                      "nb",    # From wikidata
@@ -203,45 +225,48 @@ aliasToIsoId = {
     "Brazil Portuguese":                "pt",    # From wikidata
     "Brazilian Portuguese":             "pt",    # From wikidata
     "British English":                  "en",    # From wikidata
-    "Burgundian language":              "de",    # From wikidata: Similar to Gothic, which has its own code in ISO 639-2, "got"
+    "Burgundian":                       "de",    # From wikidata: Similar to Gothic, which has its own code in ISO 639-2, "got"
     "Canadian English":                 "en",    # From wikidata
+    "Castilian":                        "es",
     "Catal\u00e1n":                     "ca",    # From wikidata
     "Central":                          "bo",
-    "Chuang":                           "za",
     "Chewa":                            "ny",
+    "Chuang":                           "za",
+    "Church Slavic":                    "cu",
     "Church Slavonic":                  "cu",    # From ISO 639-1, found in wikidata
     "Classical Armenian":               "hy",    # From wikidata
-    "classical Chinese":                "zh",    # From wikidata
-    "Classical Nahuatl language":       "nah",   # From wikidata. No similar language in ISO 639-1. "nah" is from ISO 639-2
+    "Classical Chinese":                "zh",    # From wikidata
+    "Classical Nahuatl":                "nah",   # From wikidata. No similar language in ISO 639-1. "nah" is from ISO 639-2
     "Common Brittonic":                 "br",    # From wikidata
     "Dhivehi":                          "dv",
     "Early Modern English":             "en",    # From wikidata
     "Early Modern Spanish":             "es",    # From wikidata
     "Early New High German":            "de",    # From wikidata. Middle Hgh German has its own code in ISO 639-2, "gmh"
     "Egyptian Arabic":                  "ar",    # From wikidata
-    "English languages":                "en",    # From wikidata
     "Farsi":                            "fa",
     "Filipino":                         "tl",    # From wikidata. Filipino has its own code in ISO 639-2, "fil"
     "Flemish":                          "nl",    # From ISO 639-2, found in wikidata
     "France":                           "fr",    # From wikidata
     "Fulah":                            "ff",
     "Gaelic":                           "gd",
-    "Geordie dialect":                  "en",    # From wikidata
+    "Geordie Dialect":                  "en",    # From wikidata
     "Gikuyu":                           "ki",
     "Greenlandic":                      "kl",
     "Haitian Creole":                   "ht",
     "Hawaiian Pidgin":                  "fj",    # From wikidata. Hawaiian has its own code in ISO 639-2, "haw"
     "Hiberno-English":                  "en",    # From wikidata
-    "Hmong language":                   "za",    # From wikidata. Hmong has its own code in ISO 639-2, "hmn"
-    "Igbo language":                    "ig",    # From wikidata
+    "Hmong":                            "za",    # From wikidata. Hmong has its own code in ISO 639-2, "hmn"
     "Indian English":                   "en",    # From wikidata
-    "Italiano Moderno"                  "it",    # From wikidata
-    "Judeo-Arabic languages":           "ar",    # From wikidata. Judeo-Arabic has its own code in ISO 639-2, "jrb"
+    "Italiano Moderno":                 "it",    # From wikidata
+    "Judeo-Arabic":                     "ar",    # From wikidata. Judeo-Arabic has its own code in ISO 639-2, "jrb"
+    "Kalaallisut":                      "kl",
     "Kanbun":                           "ja",    # From wikidata. Annotated Classical Chinese that can be read in Japanese
     "Karelian":                         "fi",    # From wikidata. Karelian has its own code in ISO 639-2, "krl"
-    "Kashubian language":               "pl",    # From wikidata. Kashubian has its own code in ISO 639-2, "csb"
+    "Kashubian":                        "pl",    # From wikidata. Kashubian has its own code in ISO 639-2, "csb"
     "Katharevousa":                     "el",    # From wikidata
-    "Kerewe language":                  "bnt",   # From wikidata. No similar in ISO 639-1. A Bantu language: "bnt" from ISO 639-2
+    "Kerewe":                           "bnt",   # From wikidata. No similar in ISO 639-1. A Bantu language: "bnt" from ISO 639-2
+    "Khmer":                            "km",    # Found in wikidata
+    "Kirghiz":                          "ky",
     "Koine Greek":                      "el",    # From wikidata
     "Konkani":                          "hi",    # From wikidata. Konkani has its own code in ISO 639-2, "kok"
     "Kuanyama":                         "kj",
@@ -249,63 +274,103 @@ aliasToIsoId = {
     "Late Old Japanese":                "ja",    # From wikidata
     "Letzeburgesch":                    "lb",
     "Limburgan":                        "li",
-    "Limburger":                        "li".
+    "Limburger":                        "li",
     "Luganda":                          "lg",
     "Magahi":                           "bh",
     "Maghrebi Arabic":                  "ar",    # From wikidata
-    "Maithili":                         "bh",
-    "Maithili language":                "bh",    # From wikidata
+    "Maithili":                         "bh",    # From ISO 639-1. Found in wikidata
     "Malaysian":                        "ms",    # From wikidata
-    "Malay trade and creole languages": "ms"     # From wikidata
+    "Malay Trade And Creole":           "ms",    # From wikidata
     "Maldivian":                        "dv",
     "Mandarin Chinese":                 "zh",    # From wikidata
     "Manglish":                         "en",    # From wikidata
-    "Massachusett language":            "alg",   # From wikidata. No similar in ISO 639-1. An Algonquian language: "alg" ISO 639-2
+    "Massachusett":                     "alg",   # From wikidata. No similar in ISO 639-1. An Algonquian language: "alg" ISO 639-2
     "Medieval Latin":                   "la",    # From wikidata
     "Middle English":                   "en",    # From wikidata. Middle English has its own code in ISO 639-2, "enm"
     "Middle French":                    "fr",    # From wikidata. Middle French has its own code in ISO 639-2, "frm"
-    "mittelalterliches Aragonesisch":   "an",    # From wikidata
+    "Mittelalterliches Aragonesisch":   "an",    # From wikidata
     "Modern Greek":                     "el",    # From wikidata
-    "Mon language":                     "km",    # From wikidata. Mon-Khnmer languages have there own code in ISO 639-2, "mkh"
-    "Nahuatl":                          "nah",   # From wikidata. No similar language in ISO 639-1. "nah" is from ISO 639-2
+    "Moldavian":                        "ro",
+    "Moldovan":                         "ro",
+    "Mon":                              "km",    # From wikidata. Mon-Khnmer languages have there own code in ISO 639-2, "mkh"
     "Navaho":                           "nv",
     "Neapolitan":                       "it",    # From wikidata. Neapolitan has its own code in ISO 639-2, "nap"
     "Netherlands":                      "nl",    # From wikidata
     "Nyanja":                           "ny",
     "Nynorsk":                          "nn",    # From wikidata
+    "Occidental":                       "ie",
     "Odia":                             "hi",    # From wikidata
     "Ojibwa":                           "oj",
     "Old Bulgarian":                    "cu",
     "Old Chinese":                      "zh",    # From wikidata
-    "Old East Slavic":                  "cu",    # Found in wikidata
+    "Old East Slavic":                  "cu",    # From wikidata
     "Old French":                       "fr",    # From wikidata. Old French has its own code in ISO 639-2, "fro"
-    "Old Spanish language":             "es",    # From wikidata.
-    "Old Norse language":               "no",    # From wikidata. Old Norse has its own code in ISO 639-2, "non"
+    "Old Slavonic":                     "cu",
+    "Old Spanish":                      "es",    # From wikidata.
+    "Old Norse":                        "no",    # From wikidata. Old Norse has its own code in ISO 639-2, "non"
     "Ossetic":                          "os",
+    "Ossetic":                          "os",
+    "Panjabi":                          "pa",
     "Prakrit":                          "hi",    # From wikidata. Prakrit languages have there own code in ISO 639-2, "pra"
     "Pulaar":                           "ff",
     "Pular":                            "ff",
-    "Punjabi":                          "pa",    # From ISO 639-1, found in wikidata
     "Pushto":                           "ps",
-    "Quebec French":                    "fr":    # From wikidata
-    "radical bokmål":                   "nb",    # From wikidata
+    "Quebec French":                    "fr",    # From wikidata
+    "Radical Bokm\u00e5l":              "nb",    # From wikidata
     "Ruthenian":                        "cu",    # From wikidata
-    "Scots language":                   "gd",    # From wikidata
+    "Scots":                            "gd",    # From wikidata
     "Scottish English":                 "en",    # From wikidata
-    "Serbo-Croation":                   "sr",    # From wikidata
-    "Shan language":                    "th",    # From wikidata. Tai languages have there own code in ISO 639-2, "tai"
-    "Sicilian":                         "it",    # From wikidata. Old Norse has its own code in ISO 639-2, "scn"
+    "Serbo-Croatian":                   "sr",    # From wikidata
+    "Shan":                             "th",    # From wikidata. Tai languages have there own code in ISO 639-2, "tai"
+    "Sichuan Yi":                       "ii",
+    "Sicilian":                         "it",    # From wikidata. Sicilian has its own code in ISO 639-2, "scn"
     "Sinhalese":                        "si",
-    "Spanish language in the Philippines": "es",    # From wikidata
+    "Slovene":                          "sl",    # From in wikidata
+    "Spanish In The Philippines":       "es",    # From wikidata
     "Standard Chinese":                 "zh",    # From wikidata
     "Taglish":                          "en",    # From wikidata. English words with Tagalog syntax
-    "Tuareg languages":                 "ber",   # From wikidata. No similar in ISO 639-1. A Berber language: "ber" from ISO 639-2
+    "Tuareg":                           "ber",   # From wikidata. No similar in ISO 639-1. A Berber language: "ber" from ISO 639-2
     "Tibetan Standard":                 "bo",
     "Traditional Chinese":              "zh",    # From wikidata
-    "Traditional Chinese characters":   "zh",    # From wikidata
-    "Valencian":                        "ca",    # From in wikidata
+    "Uighur":                           "ug",
+    "Valencian":                        "ca",    # From wikidata
+    "Western Armenian":                 "hy",    # From wikidata
+    "Written Vernacular Chinese":       "zh",    # From wikidata
     "Yucatec Maya":                     "myn"    # From wikidata; no similar language in ISO 639-1. "myn" is from ISO 639-2
-    "Western Armenian":                 "hy",    # From in wikidata
-    "Written vernacular Chinese":       "zh"    # From wikidata
 }
 
+iso639IdToName = None    # Constructed on the first call to isoIdToName
+
+def nameToIsoId(name):
+    words = name.split(" ")
+
+    for i in reversed(range(len(words))):
+        if words[i] == "characters" or words[i] == "language" or words[i] == "languages":
+            del words[i]
+            continue
+
+        words[i] = words[i][0].upper() + words[i][1:]
+
+    name = " ".join(words)
+
+    if name in nameToIso639Id:
+        return nameToIso639Id[name]
+
+    if name in aliasToIso639Id:
+        return aliasToIso639Id[name]
+
+    raise KeyError(name)
+
+def isoIdToName(isoId):
+    global iso639IdToName
+
+    if not iso639IdToName:
+        iso639IdToName = {}
+
+        for name in nameToIso639Id:
+            iso639IdToName[nameToIso639Id[name]] = name
+
+    if isoId in iso639IdToName:
+        return iso639IdToName[isoId]
+
+    raise KeyError(isoId)
