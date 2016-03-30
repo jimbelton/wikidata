@@ -20,6 +20,7 @@ Usage: `wd-extract.py [-c|-C] [-DfFnR] [-i file] [-I labels] [-l lc] [-o file] [
 | -i | --index file    | Output an index to a file. This can be used to quickly read an item out of the extracted data; you must specify a type with -t  |
 | -I | --include labels | Don't remove the properties in the quoted comma separated list of labels (see the list below for properties that would normally be removed) |
 | -l | --language *lc*   | Use language *lc* for all string members, falling back to **en** if needed, falling back to a random language if needed. The member name will also be depluralized (e.g. "labels" to "label"). If not specified, the multilingual string tables will be left unmodified. |
+| -L | --label-language | Preserve language ids in extracted label strings: {"type": "string", "language": <id>, "value": <text>} |
 | -n | --names         | Print labels only instead of dumping objects in JSON. Uses language, or **en** if none specified. |
 | -o | --output file    | Output the extracted data or list to a file. Default=stdout |
 | -p | --properties *lc* | Replace property ids with labels in language *lc*, falling back to **en** or a random language if needed. If not already present, a file named ########-properties.json will be generated, containing a map of property ids to labels. |
@@ -88,4 +89,9 @@ Currently, *class* can be the item identifier of a class to package, or it can b
 
 Looks up a key (an item identifier number with or without the leading **Q**) in the data extracted from a wikidata dump. This script can be used to test the **Index** class.
 
-Usage: `wd-lookup` *key* *data-file* *index-file*
+Usage: `wd-lookup` [`-l` *languages*] *key* *data-file* *index-file*
+
+| Option | Long Option | Description |
+| --- | --- | --- |
+| -l  | --languages list | Include only books in one of the comma separated list of languages (default=all). e.g. "English,German". If no 'original language of work' is specified and the book does not have a label in the requested language, don't include it. This requires that the extraction being used has multilingual strings (`-l` was not specified) or has label languages preserved (`-L` was specified). |
+
