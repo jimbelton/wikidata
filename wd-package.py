@@ -5,7 +5,10 @@
 Usage: wd-package.py [-l languages] <class> <data> <index>
 
 Options:
-    -l --languages list    Include only books in one of the comma separated list of languages (default=all). e.g. "English,German"
+    -l --languages list    Include only books in one of the comma separated list of languages (default=all). e.g. "English,German".
+                           If no 'original language of work' is specified and the book does not have a label in the requested
+                           language, don't include it. This requires that the extraction being used has multilingual strings ('-l'
+                           was not specified) or has label languages preserved ('-L' was specified).
 """
 
 import json
@@ -13,29 +16,6 @@ import os
 import sys
 
 unwantedProperties = {
-#    "BNCF Thesaurus",                        # Florentine national central library
-#    "BnF identifier",                        # French national library
-#    "Commons category",                      # Wikimedia Commons
-#    "Commons gallery",                       # Wikimedia Commons
-#    "Freebase identifier",                   # Defunct structured data source, purchased and closed by Google
-#    "GND identifier",                        # German universal authority file
-#    "IMDb identifier",                       # Internet movie database
-#    "ISFDB title ID",                        # Internet speculative fiction database
-#    "KINENOTE film ID",                      # Japanese KINENOTE movie database
-#    "LCAuth identifier",                     # US libary of congress
-#    "Library of Congress Classification",    # US libary of congress
-#    "LibraryThing work identifier",          # LibraryThing
-#    "MusicBrainz artist ID",                 # MusicBrainz
-#    "MusicBrainz release group ID",          # MusicBrainz
-#    "MusicBrainz work ID",                   # MusicBrainz
-#    "NDL identifier",                        # Japan national diet library
-#    "NLA (Australia) identifier",            # Australian national library
-#    "OCLC control number",                   # WorldCat
-#    "Open Library identifier",               # openlibrary.org
-#    "PSH ID",                                # Czech technical library
-#    "Regensburg Classification",             # German university of Regensburg library
-#    "SUDOC authorities",                     # French university libraries
-#    "VIAF identifier"                        # Virtual international authority file
 }
 
 # For each package, the map of properties that point to other objects to the names of collections of those objects.
@@ -56,7 +36,9 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 #import simplify
 from docopt  import docopt
 from index   import Index
-from options import options, error, warn
+from options import options, error, fatal, warn
+import language
+
 options["ignore-errors"] = True
 args      = docopt(__doc__, version='1.0')
 data      = open(args["<data>"])
@@ -113,9 +95,16 @@ for line in data:
     if classId == None:
         continue
 
+    #json.dump(object, sys.stderr, sort_keys=True, indent=4, separators=(',', ': '))
+
+    # For each property; note: use extracted key to allow deletion.
     for property in object.keys():
         if property in unwantedProperties:
             del object[property]
+            continue
+
+        # Non list members (description, label, id) don't contain references to other objects
+        if not isinstance(object[property], list):
             continue
 
         # Walk across the array of values backward, so that deletions don't screw up the traversal
@@ -149,19 +138,37 @@ for line in data:
                 #    error("Item '%s' property %s contains a bad object: %s" % (object["label"], property, str(value)),
                 #          file=args["<data>"], line=lineNum)
 
-    # If we're filtering the languages and this in not one that we want, skip it
-    if languages and "original language of work" in object:
-        if len(set(object["original language of work"]) & languages) == 0:
-            try:
-                error("Item '%s' is in language '%s'" % (object["label"], ",".join(object["original language of work"])))
-            except UnicodeEncodeError:
+    # If we're filtering the languages
+    if languages:
+        if "label" in object and isinstance(object["label"], dict):
+            if object["label"]["language"] not in languages:
+                 warn("Item '%s' label language is '%s': skipped" % (object["label"]["value"], object["label"]["language"]),
+                      file=args["<data>"], line=lineNum)
+
+        elif "original language of work" in object:
+            originalLanguageIds = set()
+
+            for lang in object["original language of work"]:
+                languageLabel = lang["value"] if isinstance(lang, dict) else lang
+
                 try:
-                    error("Item '%s' is in language '%s'"
-                          % (json.dumps(object["label"]), ",".join(object["original language of work"])))
+                    originalLanguageIds.add(language.nameToIsoId(languageLabel))
+                except KeyError:
+                    if languageLabel == u'n/a (silent film)':
+                        continue
+
+                    fatal("Item '%s' has unknown original language '%s'"  % (object["label"],  languageLabel),
+                        file=args["<data>"], line=lineNum)
+
+            if len(originalLanguageIds & languages) == 0:
+                try:
+                    error("Item '%s' is in language '%s'" % (object["label"], ",".join(list(originalLanguageIds))))
                 except UnicodeEncodeError:
-                    error("Item '%s' is in language '%s'"
-                          % (json.dumps(object["label"]),
-                             ",".join([json.dumps(language) for language in object["original language of work"]])))
+                    try:
+                        error("Item '%s' is in language '%s'" % (json.dumps(object["label"]), ",".join(list(originalLanguages))))
+                    except UnicodeEncodeError:
+                        error("Item '%s' is in language '%s'"
+                            % (json.dumps(object["label"]), ",".join([json.dumps(language) for language in orginalLanguages])))
 
     package["items"        ][object["id"]] = object
     package[args["<class>"]][object["id"]] = None

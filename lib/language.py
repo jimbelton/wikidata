@@ -183,7 +183,6 @@ nameToIso639Id = {
     "Swahili":              "sw",
     "Swati":                "ss",
     "Swedish":              "sv",    # Found in wikidata
-    "Tagalog":              "tl",    # Found in wikidata
     "Tahitian":             "ty",
     "Tajik":                "tg",
     "Tamil":                "ta",    # Found in wikidata
@@ -206,6 +205,7 @@ nameToIso639Id = {
     "Uyghur":               "ug",
     "Ukrainian":            "uk",    # Found in wikidata
     "Urdu":                 "ur",    # Found in wikidata
+    "Uto-Aztecan":          "azc",   # No similar language in ISO 639-1
     "Uzbek":                "uz",
     "Venda":                "ve",
     "Vietnamese":           "vi",    # Found in wikidata
@@ -230,9 +230,10 @@ aliasToIso639Id = {
     "American English":                 "en",    # From wikidata
     "Australian English":               "en",    # From wikidata
     "Austrian German":                  "de",    # From wikidata
+    "Bahasa Melayu Sabah":              "ms",    # From wikidata
     "Bangla":                           "bn",
     "Bhojpuri":                         "bh",
-    "Bokm\u00e5l":                      "nb",    # From wikidata
+    u"Bokm\u00e5l":                     "nb",    # From wikidata
     "Brazil":                           "pt",    # From wikidata
     "Brazil Portuguese":                "pt",    # From wikidata
     "Brazilian Portuguese":             "pt",    # From wikidata
@@ -240,7 +241,7 @@ aliasToIso639Id = {
     "Burgundian":                       "de",    # From wikidata: Similar to Gothic, which has its own code in ISO 639-2, "got"
     "Canadian English":                 "en",    # From wikidata
     "Castilian":                        "es",
-    "Catal\u00e1n":                     "ca",    # From wikidata
+    u"Catal\u00e1n":                    "ca",    # From wikidata
     "Central":                          "bo",
     "Chewa":                            "ny",
     "Chuang":                           "za",
@@ -256,6 +257,7 @@ aliasToIso639Id = {
     "Early New High German":            "de",    # From wikidata
     "Egyptian Arabic":                  "ar",    # From wikidata
     "Farsi":                            "fa",
+    "Tagalog":                          "fil",   # Found in wikidata. Intentionally categorized as Filipino, not "tl" (Tagalog).
     "Flemish":                          "nl",    # From ISO 639-2, found in wikidata
     "France":                           "fr",    # From wikidata
     "Fulah":                            "ff",
@@ -266,12 +268,14 @@ aliasToIso639Id = {
     "Haitian Creole":                   "ht",
     "Hawaiian Pidgin":                  "haw",   # From wikidata
     "Hiberno-English":                  "en",    # From wikidata
+    "Hopi":                             "azc",   # From wikidata. Not in ISO 639-1. An Uto-Aztecan language: "azc" in ISO 639-5
     "Indian English":                   "en",    # From wikidata
     "Italiano Moderno":                 "it",    # From wikidata
+    "Jamaican Patois":                  "en",    # From wikidata. No similar in ISO 639-1. English based creole: "cpe" in ISO 639-2
     "Kalaallisut":                      "kl",
     "Kanbun":                           "ja",    # From wikidata. Annotated Classical Chinese that can be read in Japanese
     "Katharevousa":                     "el",    # From wikidata
-    "Kerewe":                           "bnt",   # From wikidata. No similar in ISO 639-1. A Bantu language: "bnt" from ISO 639-2
+    "Kerewe":                           "bnt",   # From wikidata. No similar in ISO 639-1. A Bantu language: "bnt" in ISO 639-2
     "Khmer":                            "km",    # From in wikidata
     "Kirghiz":                          "ky",
     "Koine Greek":                      "el",    # From wikidata
@@ -300,6 +304,7 @@ aliasToIso639Id = {
     "Mon":                              "km",    # From wikidata. Mon-Khnmer languages have there own code in ISO 639-2, "mkh"
     "Navaho":                           "nv",
     "Netherlands":                      "nl",    # From wikidata
+    "Nigerian Pidgin":                  "en",    # From wikidata. No similar in ISO 639-1. English based creole: "cpe" in ISO 639-2
     "Nyanja":                           "ny",
     "Nynorsk":                          "nn",    # From wikidata
     "Occidental":                       "ie",
@@ -310,15 +315,15 @@ aliasToIso639Id = {
     "Old East Slavic":                  "cu",    # From wikidata
     "Old French":                       "fr",    # From wikidata. Old French has its own code in ISO 639-2, "fro"
     "Old Slavonic":                     "cu",
-    "Old Spanish":                      "es",    # From wikidata.
-    "Ossetic":                          "os",
+    "Old Spanish":                      "es",    # From wikidata
     "Ossetic":                          "os",
     "Panjabi":                          "pa",
+    "Philippine English":               "en",    # From wikidata
     "Pulaar":                           "ff",
     "Pular":                            "ff",
     "Pushto":                           "ps",
     "Quebec French":                    "fr",    # From wikidata
-    "Radical Bokm\u00e5l":              "nb",    # From wikidata
+    u"Radical Bokm\u00e5l":             "nb",    # From wikidata
     "Ruthenian":                        "cu",    # From wikidata
     "Scots":                            "gd",    # From wikidata
     "Scottish English":                 "en",    # From wikidata
@@ -329,7 +334,7 @@ aliasToIso639Id = {
     "Slovene":                          "sl",    # From in wikidata
     "Spanish In The Philippines":       "es",    # From wikidata
     "Standard Chinese":                 "zh",    # From wikidata
-    "Taglish":                          "en",    # From wikidata. English words with Tagalog syntax
+    "Taglish":                          "fil",   # From wikidata. Tagalog using some English words
     "Tuareg":                           "ber",   # From wikidata. No similar in ISO 639-1. A Berber language: "ber" from ISO 639-2
     "Tibetan Standard":                 "bo",
     "Traditional Chinese":              "zh",    # From wikidata
@@ -337,7 +342,7 @@ aliasToIso639Id = {
     "Valencian":                        "ca",    # From wikidata
     "Western Armenian":                 "hy",    # From wikidata
     "Written Vernacular Chinese":       "zh",    # From wikidata
-    "Yucatec Maya":                     "myn"    # From wikidata; no similar language in ISO 639-1. "myn" is from ISO 639-2
+    "Yucatec Maya":                     "myn"    # From wikidata. No similar language in ISO 639-1. "myn" is from ISO 639-2
 }
 
 iso639IdToName = None    # Constructed on the first call to isoIdToName

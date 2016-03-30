@@ -2,7 +2,7 @@
 
 """wd-extract.py - Extract data from a JSON dump of wikidata.org
 
-Usage: wd-extract.py [-c|-C] [-DfFnR] [-i file] [-I labels] [-l lc] [-o file] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
+Usage: wd-extract.py [-c|-C] [-DfFLnR] [-i file] [-I labels] [-l lc] [-o file] [-p lc] [-s pat] [-t type] [-w] <wd-dump-json>
 
 Options:
     -C --claims          Don't simplify claims
@@ -13,6 +13,7 @@ Options:
     -i --index file      Output an index to file
     -I --include labels  Include the comma separated labeled properties (i.e. exclude them from the list of ignored properties)
     -l --language lc     Use language lc for all strings, falling back to en if needed, falling back to a random language if needed
+    -L --label-language  Preserve language ids in extracted label strings: {"type": "string", "language": <id>, "value": <text>}
     -o --output file     Output the extraction to file
     -n --names           Print labels only instead of dumping objects in JSON
     -p --properties lc   Replace property ids with labels in language lc, falling back to english or a random language if needed
@@ -56,7 +57,7 @@ ignoredProperties = {
 
 # Pick the the string for the requested language from a multilingual string map, falling back to English, or to the first string.
 #
-def chooseString(strings, language):
+def chooseString(strings, language, keepIds=False):
     if language in strings:
         value = strings[language]
 
@@ -73,9 +74,17 @@ def chooseString(strings, language):
         newValue = []
 
         for element in value:
-            newValue.append(element["value"])
+            if keepIds:
+                element["type"] = "string"
+                newValue.append(element)
+            else:
+                newValue.append(element["value"])
 
         return newValue
+
+    if keepIds:
+        value["type"] = "string"
+        return value
 
     return value["value"]
 
@@ -268,7 +277,7 @@ def process(command="extract", output=outputFile):
                     warn("object has no %s" % member, file=args["<wd-dump-json>"], line=lineNum)
                     continue
 
-                value = chooseString(obj[member], lang)
+                value = chooseString(obj[member], lang, keepIds=args["--label-language"] and member == "labels")
                 del obj[member]
 
                 if value == None:
