@@ -64,6 +64,26 @@ The following properties will be removed unless explicitly included with the **-
 | SUDOC authorities                     | French university libraries |
 | VIAF identifier                       | Virtual international authority file |
 
+## wd-package
+
+Generate a package of data from data extracted from a wikidata dump
+
+Usage: `wd-package.py` [-l *languages*] *class* *data-file* *index-file*
+
+Currently, *class* can be the item identifier of a class to package, or it can be `books`, which will extract all objects related to books. This script is a work in progress.
+
+| Option | Long Option | Description |
+| --- | --- | --- |
+| -l  | --languages list | Include only books in one of the comma separated list of languages (default=all). e.g. "English,German". If no 'original language of work' is specified and the book does not have a label in the requested language, don't include it. This requires that the extraction being used has multilingual strings (`-l` was not specified) or has label languages preserved (`-L` was specified). |
+
+## wd-query.py
+
+Query a package of wikidata. Currently, lists all labels of the named *attribute* in the *packageFile*
+
+Usage: `wd-query.py` *attribute* *packageFile*
+
+Example: `wd-query.py books books-package.json`
+
 ## wd-diagram.py
 
 Generates a class diagram from extracted classes
@@ -76,18 +96,6 @@ Usage: `wd-diagram.py [-dfw] [-l n]` *wd-classes-json*
 | -f | --failonerror | If present, exit if an error occurs |
 | -l | --levels n    | Show only the first n levels of classes below the root in the hierarchy (default=unlimited)
 | -w | --warning     | Print warnings |
-
-## wd-package
-
-Generate a package of data from data extracted from a wikidata dump
-
-Usage: `wd-package.py` [-l *languages*] *class* *data-file* *index-file*
-
-Currently, *class* can be the item identifier of a class to package, or it can be `books`, which will extract all objects related to books. This script is a work in progress.
-
-| Option | Long Option | Description |
-| --- | --- | --- |
-| -l  | --languages list | Include only books in one of the comma separated list of languages (default=all). e.g. "English,German". If no 'original language of work' is specified and the book does not have a label in the requested language, don't include it. This requires that the extraction being used has multilingual strings (`-l` was not specified) or has label languages preserved (`-L` was specified). |
 
 ## wd-lookup.py
 
