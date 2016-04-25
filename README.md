@@ -81,17 +81,17 @@ Usage: `wd-diagram.py [-dfw] [-l n]` *wd-classes-json*
 
 Generate a package of data from data extracted from a wikidata dump
 
-Usage: `wd-package.py` *class* *data-file* *index*
+Usage: `wd-package.py` [-l *languages*] *class* *data-file* *index-file*
 
 Currently, *class* can be the item identifier of a class to package, or it can be `books`, which will extract all objects related to books. This script is a work in progress.
+
+| Option | Long Option | Description |
+| --- | --- | --- |
+| -l  | --languages list | Include only books in one of the comma separated list of languages (default=all). e.g. "English,German". If no 'original language of work' is specified and the book does not have a label in the requested language, don't include it. This requires that the extraction being used has multilingual strings (`-l` was not specified) or has label languages preserved (`-L` was specified). |
 
 ## wd-lookup.py
 
 Looks up a key (an item identifier number with or without the leading **Q**) in the data extracted from a wikidata dump. This script can be used to test the **Index** class.
 
-Usage: `wd-lookup` [`-l` *languages*] *key* *data-file* *index-file*
-
-| Option | Long Option | Description |
-| --- | --- | --- |
-| -l  | --languages list | Include only books in one of the comma separated list of languages (default=all). e.g. "English,German". If no 'original language of work' is specified and the book does not have a label in the requested language, don't include it. This requires that the extraction being used has multilingual strings (`-l` was not specified) or has label languages preserved (`-L` was specified). |
+Usage: `wd-lookup` *key* *data-file* *index-file*
 
