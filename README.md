@@ -78,11 +78,24 @@ Currently, *class* can be the item identifier of a class to package, or it can b
 
 ## wd-query.py
 
-Query a package of wikidata. Currently, lists all labels of the named *attribute* in the *packageFile*
+Query a package of wikidata in the *packageFile*. By default, list all labels of the named *attribute*
 
-Usage: `wd-query.py` *attribute* *packageFile*
+Usage: `wd-query.py` [-f *label*] *attribute* *packageFile*
 
-Example: `wd-query.py books books-package.json`
+| Option | Long Option | Description |
+| --- | --- | --- |
+| -f  | --find *label* | Search for the *label* in the named *atttibute*, displaying the matching object in JSON if found  |
+
+### Examples
+To list the labels of all the books in a package of books:
+```
+wd-query.py books books-package.json
+```
+
+To find and display (in JSON) the book "Ringworld":
+```
+wd-query.py -f Ringworld books books-package.json
+```
 
 ## wd-diagram.py
 
