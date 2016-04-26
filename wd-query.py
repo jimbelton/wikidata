@@ -2,11 +2,15 @@
 
 """wd-query.py - Query a package of wikidata
 
-Usage: wd-query.py <attribute> <packageFile>
+Usage: wd-query.py [-f label] <attribute> <packageFile>
 
-List all labels of the named attribute in the packageFile
+Operate on a package of wikidata in packagefile. By default, list all labels of the named attribute in the package
+
+Options:
+    -f --find label  Search for the label in the given attribute and print a the matching item if found
 """
 
+import json
 import os
 import sys
 
@@ -17,5 +21,17 @@ from wikidata.package import Package
 args    = docopt(__doc__, version='1.0')
 package = Package(args["<packageFile>"])
 
-for label in package.labels("books"):
-    print label
+if args["--find"]:
+    item = package.find(args["<attribute>"], args["--find"])
+
+    if not item:
+        sys.exit("Label '%s' not found among %s in package %s" % (args["--find"], args["<attribute>"], args["<packageFile>"]))
+
+    print json.dumps(item, sort_keys=True, indent=4, separators=(',', ': '))
+    sys.exit(0)
+
+for label in package.labels(args["<attribute>"]):
+    try:
+        print label
+    except UnicodeError:
+        print json.dumps(label)
